@@ -1,0 +1,835 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Adventist University of Central Africa - Transforming Lives Through Faith-Based Education"
+    />
+    <meta
+      name="keywords"
+      content="AUCA, University, Rwanda, Education, Christian Education"
+    />
+    <title>
+      {% block title %} AUCA - Adventist University of Central Africa || EDUSTAT
+      PROJECT {%endblock%}
+    </title>
+
+    <!-- Tailwind CSS -->
+    {% load static %}
+    <link href="{% static 'dist/css/style.css' %}" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      type="image/png"
+      href="{% static 'images/favicon.png' %}"
+    />
+
+    <!-- Additional CSS -->
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body class="bg-white text-gray-800 font-sans antialiased">
+    {% comment %} Top Contact Bar {% endcomment %}
+    <div class="bg-[#f1f7ff] hidden md:block">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div
+          class="flex flex-col lg:flex-row justify-between items-center py-3 gap-3 lg:gap-4"
+        >
+          <!-- Left side - Quick Links -->
+          <div class="w-full lg:w-auto">
+            <ul
+              class="flex flex-wrap justify-center lg:justify-start items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-700"
+            >
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-yellow-400 transition duration-200 flex items-center gap-1"
+                >
+                  <span>Apply</span>
+                </a>
+              </li>
+
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-yellow-400 transition duration-200 flex items-center gap-1"
+                >
+                  <span class="hidden sm:inline">Online </span>Registration
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-yellow-400 transition duration-200 flex items-center gap-1"
+                >
+                  <span>e-Library</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#"
+                  class="hover:text-yellow-400 transition duration-200 flex items-center gap-1"
+                >
+                  <span class="hidden sm:inline">News</span>Letter
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Right side - Info -->
+          <div
+            class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs sm:text-sm w-full lg:w-auto justify-center lg:justify-end"
+          >
+            <p class="text-gray-700 flex items-center gap-1">
+              <span>January intake 2026 is Open</span>
+            </p>
+            <span class="hidden sm:block text-gray-300">|</span>
+            <a
+              href="tel:+250724796998"
+              class="font-semibold text-grey-600 hover:text-yellow-400 transition flex items-center gap-2"
+            >
+              <span>+250 724 796 998</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary Navigation bar -->
+
+    <div
+      class="hidden md:block bg-white px-2 py-5 border-b border-yellow-400 border-b-6"
+    >
+      <div
+        class="flex items-center justify-between container mx-auto px-4 sm:px-6 lg:px-8"
+      >
+        <!-- Logo -->
+        <div class="flex items-center">
+          <a
+            href="{% url 'home:home' %}"
+            class="flex items-center hover:opacity-90 transition"
+          >
+            <img
+              src="{% static 'images/auca-logo.png' %}"
+              alt="AUCA Logo"
+              class="h-12 sm:h-16 md:h-20 w-auto object-contain"
+            />
+          </a>
+        </div>
+
+        <!-- right side - Quick Links -->
+        <div class="w-full lg:w-auto">
+          <ul
+            class="flex flex-wrap justify-center lg:justify-start items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-700"
+          >
+            <li>
+              <a
+                href="#"
+                class="hover:text-blue-600 transition duration-200 flex items-center gap-1"
+              >
+                <span>30th Graduation</span>
+              </a>
+            </li>
+
+            <li>
+              <a
+                href="#"
+                class="hover:text-blue-600 transition duration-200 flex items-center gap-1"
+              >
+                <span class="hidden sm:inline">Online </span>Application
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="hover:text-blue-600 transition duration-200 flex items-center gap-1"
+              >
+                <span>e-Library</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                class="hover:text-blue-600 transition duration-200 flex items-center gap-1"
+              >
+                Edustat Portal
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <nav class="bg-[#1B3058] shadow-lg sticky top-0 z-50">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+          <!-- Desktop Navigation Links -->
+          <div class="hidden lg:flex items-center space-x-6 xl:space-x-8">
+            <a
+              href="{% url 'home:home' %}"
+              class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
+            >
+              <span>Home</span>
+            </a>
+
+            <!-- About Dropdown -->
+            <div class="relative group">
+              <button
+                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
+              >
+                <span>About</span>
+                <svg
+                  class="w-4 h-4 transition-transform group-hover:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+              >
+                <a
+                  href="#about-us"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
+                  >About Us</a
+                >
+                <a
+                  href="#mission-vision"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >Mission & Vision</a
+                >
+                <a
+                  href="#leadership"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >Leadership</a
+                >
+                <a
+                  href="#history"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
+                  >History</a
+                >
+              </div>
+            </div>
+
+            <!-- Admissions Dropdown -->
+            <div class="relative group">
+              <button
+                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
+              >
+                <span>Admissions</span>
+                <svg
+                  class="w-4 h-4 transition-transform group-hover:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+              >
+                <a
+                  href="#undergraduate"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
+                  >Undergraduate</a
+                >
+                <a
+                  href="#graduate"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >Graduate</a
+                >
+                <a
+                  href="#international"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >International</a
+                >
+                <a
+                  href="#requirements"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
+                  >Requirements</a
+                >
+              </div>
+            </div>
+
+            <!-- Academics Dropdown -->
+            <div class="relative group">
+              <button
+                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
+              >
+                <span>Academics</span>
+                <svg
+                  class="w-4 h-4 transition-transform group-hover:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+              >
+                <a
+                  href="#programs"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
+                  >Programs</a
+                >
+                <a
+                  href="#schools"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >Schools & Colleges</a
+                >
+                <a
+                  href="#courses"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >Course Catalog</a
+                >
+                <a
+                  href="#calendar"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
+                  >Academic Calendar</a
+                >
+              </div>
+            </div>
+
+            <!-- Medical Center Dropdown -->
+            <div class="relative group">
+              <button
+                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
+              >
+                <span>Medical Center</span>
+                <svg
+                  class="w-4 h-4 transition-transform group-hover:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+              >
+                <a
+                  href="#patient-care"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
+                  >Patient Care</a
+                >
+                <a
+                  href="#services"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >Services</a
+                >
+                <a
+                  href="#facilities"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >Facilities</a
+                >
+                <a
+                  href="#appointments"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
+                  >Appointments</a
+                >
+              </div>
+            </div>
+
+            <!-- Research Dropdown -->
+            <div class="relative group">
+              <button
+                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
+              >
+                <span>Research</span>
+                <svg
+                  class="w-4 h-4 transition-transform group-hover:rotate-180"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 9l-7 7-7-7"
+                  ></path>
+                </svg>
+              </button>
+              <div
+                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
+              >
+                <a
+                  href="#research-areas"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
+                  >Research Areas</a
+                >
+                <a
+                  href="#labs"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >Labs & Centers</a
+                >
+                <a
+                  href="#publications"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+                  >Publications</a
+                >
+                <a
+                  href="#funding"
+                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
+                  >Funding</a
+                >
+              </div>
+            </div>
+
+            {%if user.is_authenticated%}
+            <a
+              href="{% url 'dashboard:dashboard' %}"
+              class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
+            >
+              <span>Dashboard</span>
+            </a>
+            {%endif%}
+          </div>
+
+          <!-- Auth Button -->
+          <div>
+            {% if user.is_authenticated %}
+            <a
+              href="{% url 'accounts:logout' %}"
+              class="bg-yellow-300 text-sm xl:text-base text-gray-800 px-4 xl:px-6 py-2 rounded-sm hover:bg-yellow-400 transition duration-200 font-semibold flex items-center gap-2"
+            >
+              <span>Logout</span>
+            </a>
+            {% else %}
+            <a
+              href="{% url 'accounts:login' %}"
+              class="bg-yellow-300 text-sm xl:text-base text-gray-800 px-4 xl:px-6 py-2 rounded-sm hover:bg-yellow-400 transition duration-200 font-semibold flex items-center gap-2"
+            >
+              <span>Login</span>
+            </a>
+            {% endif %}
+          </div>
+
+          <!-- Mobile Menu Button -->
+          <button
+            id="mobile-menu-button"
+            class="lg:hidden p-2 rounded-lg hover:bg-blue-900 transition text-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
+            aria-label="Toggle menu"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div
+        id="mobile-menu"
+        class="hidden lg:hidden bg-[#1B3058] border-t border-gray-200 shadow-lg"
+      >
+        <div class="px-4 pt-3 pb-4 space-y-2">
+          <a
+            href="{% url 'home:home' %}"
+            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium flex items-center gap-3"
+          >
+            <span>Home</span>
+          </a>
+
+          <!-- Mobile About Dropdown -->
+          <div class="mobile-dropdown">
+            <button
+              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
+            >
+              <div class="flex items-center gap-3">
+                <span>About</span>
+              </div>
+              <svg
+                class="w-4 h-4 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
+              <a
+                href="#about-us"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >About Us</a
+              >
+              <a
+                href="#mission-vision"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Mission & Vision</a
+              >
+              <a
+                href="#leadership"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Leadership</a
+              >
+              <a
+                href="#history"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >History</a
+              >
+            </div>
+          </div>
+
+          <!-- Mobile Admissions Dropdown -->
+          <div class="mobile-dropdown">
+            <button
+              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
+            >
+              <div class="flex items-center gap-3">
+                <span>Admissions</span>
+              </div>
+              <svg
+                class="w-4 h-4 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
+              <a
+                href="#undergraduate"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Undergraduate</a
+              >
+              <a
+                href="#graduate"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Graduate</a
+              >
+              <a
+                href="#international"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >International</a
+              >
+              <a
+                href="#requirements"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Requirements</a
+              >
+            </div>
+          </div>
+
+          <!-- Mobile Academics Dropdown -->
+          <div class="mobile-dropdown">
+            <button
+              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
+            >
+              <div class="flex items-center gap-3">
+                <span>Academics</span>
+              </div>
+              <svg
+                class="w-4 h-4 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
+              <a
+                href="#programs"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Programs</a
+              >
+              <a
+                href="#schools"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Schools & Colleges</a
+              >
+              <a
+                href="#courses"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Course Catalog</a
+              >
+              <a
+                href="#calendar"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Academic Calendar</a
+              >
+            </div>
+          </div>
+
+          <!-- Mobile Medical Center Dropdown -->
+          <div class="mobile-dropdown">
+            <button
+              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
+            >
+              <div class="flex items-center gap-3">
+                <span>Medical Center</span>
+              </div>
+              <svg
+                class="w-4 h-4 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
+              <a
+                href="#patient-care"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Patient Care</a
+              >
+              <a
+                href="#services"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Services</a
+              >
+              <a
+                href="#facilities"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Facilities</a
+              >
+              <a
+                href="#appointments"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Appointments</a
+              >
+            </div>
+          </div>
+
+          <!-- Mobile Research Dropdown -->
+          <div class="mobile-dropdown">
+            <button
+              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
+            >
+              <div class="flex items-center gap-3">
+                <span>Research</span>
+              </div>
+              <svg
+                class="w-4 h-4 transition-transform"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                ></path>
+              </svg>
+            </button>
+            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
+              <a
+                href="#research-areas"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Research Areas</a
+              >
+              <a
+                href="#labs"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Labs & Centers</a
+              >
+              <a
+                href="#publications"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Publications</a
+              >
+              <a
+                href="#funding"
+                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
+                >Funding</a
+              >
+            </div>
+          </div>
+
+          <div class="pt-2 border-t mt-2">
+            {% if user.is_authenticated %}
+            <a
+              href="{% url 'dashboard:dashboard' %}"
+              class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium flex items-center gap-3"
+            >
+              <i class="fas fa-tachometer-alt w-5"></i>
+              <span>Dashboard</span>
+            </a>
+            <a
+              href="{% url 'accounts:logout' %}"
+              class="block px-4 py-3 w-full bg-yellow-300 text-gray-800 rounded-lg hover:bg-yellow-400 transition font-semibold text-center mt-2 flex items-center justify-center gap-2"
+            >
+              <span>Logout</span>
+            </a>
+            {% else %}
+            <a
+              href="{% url 'accounts:login' %}"
+              class="block px-4 py-3 w-full bg-yellow-300 text-gray-800 rounded-lg hover:bg-yellow-400 transition font-semibold text-center flex items-center justify-center gap-2"
+            >
+              <span>Login</span>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Messages (Flash Messages) -->
+    {% if messages %}
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+      {% for message in messages %}
+      <div
+        class="{% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %} px-4 py-3 rounded-lg mb-4 flex items-start space-x-3 shadow-sm"
+        role="alert"
+      >
+        <i
+          class="{% if message.tags == 'error' %}fas fa-exclamation-circle{% elif message.tags == 'success' %}fas fa-check-circle{% elif message.tags == 'warning' %}fas fa-exclamation-triangle{% else %}fas fa-info-circle{% endif %} mt-0.5 flex-shrink-0"
+        ></i>
+        <span class="flex-1">{{ message }}</span>
+        <button
+          onclick="this.parentElement.remove()"
+          class="text-current hover:opacity-70 transition"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Main Content Area -->
+    <main class="mx-auto px-4 sm:px-6 lg:px-8">
+      {% block content %}
+      <!-- Page-specific content goes here -->
+      {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer
+      class="bg-[#1B3058] text-white mt-16 border-t border-yellow-500 border-t-6"
+    >
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Left Column: Contact & Info -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-bold text-yellow-400">Since 1984</h3>
+            <p class="text-gray-300 font-semibold">
+              ADVENTIST UNIVERSITY OF CENTRAL AFRICA
+            </p>
+            <p class="text-gray-300">
+              Masoro Hill, City of Kigali<br />
+              PO Box 2461, Kigali, Rwanda
+            </p>
+
+            <div class="space-y-2">
+              <p class="text-yellow-400 font-semibold">Admission Inquiries:</p>
+              <p class="text-gray-300">
+                admissions@auca.ac.rw | +250 724 796 998
+              </p>
+
+              <p class="text-yellow-400 font-semibold">Media Inquiries:</p>
+              <p class="text-gray-300">marketing@auca.ac.rw</p>
+
+              <p class="text-yellow-400 font-semibold">General Inquiries:</p>
+              <p class="text-gray-300">info@auca.ac.rw</p>
+            </div>
+          </div>
+
+          <!-- Right Column: Map -->
+          <div class="rounded overflow-hidden shadow-lg">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.064272695576!2d30.061053375528603!3d-1.944620436142119!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca32b6d694ff7%3A0x36c9d6cf2f4efb27!2sAdventist%20University%20of%20Central%20Africa%20(AUCA)!5e0!3m2!1sen!2srw!4v1600000000000!5m2!1sen!2srw"
+              width="100%"
+              height="300"
+              style="border: 0"
+              allowfullscreen=""
+              loading="lazy"
+            >
+            </iframe>
+          </div>
+        </div>
+
+        <!-- Copyright -->
+        <div
+          class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400"
+        >
+          <p class="flex items-center justify-center gap-2 flex-wrap">
+            <i class="far fa-copyright"></i>
+            <span
+              >2025 Adventist University of Central Africa. All rights
+              reserved.</span
+            >
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    {% load static %}
+
+    <script src="{% static 'js/main.js' %}"></script>
+
+    <!-- Additional JavaScript -->
+    {% block extra_js %}{% endblock %}
+  </body>
+</html>
