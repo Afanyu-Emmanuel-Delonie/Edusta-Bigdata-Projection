@@ -1,5 +1,5 @@
 """
-Performance Analysis Module - Simplified for Single Dataset
+Performance Analysis Module with DEPARTMENT FILTER support
 Analyzes student performance data and generates insights
 """
 
@@ -10,8 +10,7 @@ from .models import Performance, Recommendation
 
 class PerformanceAnalyzer:
     """
-    Analyzes performance data - Simplified for single dataset usage
-    Since uploads replace all data, we don't need complex dataset filtering
+    Analyzes performance data with support for department filtering
     """
     
     def __init__(self, user=None, filters=None):
@@ -20,15 +19,14 @@ class PerformanceAnalyzer:
         
         Args:
             user: Django User object (can be None)
-            filters: Dictionary of filters (course, semester, group, status, search)
+            filters: Dictionary of filters (course, semester, group, status, search, department)
         """
         self.user = user
         self.filters = filters or {}
     
     def get_filtered_queryset(self):
         """
-        Get filtered queryset of performances
-        Simplified - no complex dataset merging needed
+        Get filtered queryset of performances with DEPARTMENT support
         
         Returns:
             QuerySet of Performance objects
@@ -37,8 +35,13 @@ class PerformanceAnalyzer:
             'student', 'course', 'semester', 'group'
         )
 
-        # Apply basic filters
+        # Apply filters
         f = self.filters
+
+        # NEW: Filter by department (student's department)
+        department = f.get('department')
+        if department:
+            qs = qs.filter(student__department__iexact=str(department))
 
         # Filter by course
         course = f.get('course')
@@ -147,6 +150,7 @@ class PerformanceAnalyzer:
                 'score': float(perf.score),
                 'grade': perf.grade,
                 'semester': perf.semester.name,
+                'department': perf.student.department,  # Added department
             })
         
         return result
@@ -169,6 +173,7 @@ class PerformanceAnalyzer:
                 'score': float(perf.score),
                 'grade': perf.grade,
                 'semester': perf.semester.name,
+                'department': perf.student.department,  # Added department
             })
         
         return result
@@ -219,6 +224,34 @@ class PerformanceAnalyzer:
             })
         
         return result
+    
+    def get_department_comparison(self):
+        """
+        NEW: Compare performance across departments
+        
+        Returns:
+            List of department statistics
+        """
+        qs = self.get_filtered_queryset()
+        
+        departments = qs.values('student__department').annotate(
+            average_score=Avg('score'),
+            total_students=Count('id'),
+            passed=Count('id', filter=Q(score__gte=50))
+        ).order_by('-average_score')
+        
+        result = []
+        for dept in departments:
+            total = dept['total_students']
+            pass_rate = (dept['passed'] / total * 100) if total > 0 else 0
+            result.append({
+                'department': dept['student__department'] or 'Unknown',
+                'average_score': round(float(dept['average_score'] or 0), 2),
+                'total_students': total,
+                'pass_rate': round(pass_rate, 2),
+            })
+        
+        return result
 
     def get_recommendations(self, unresolved_only=False):
         """Get recommendations for students in current dataset"""
@@ -244,6 +277,7 @@ class PerformanceAnalyzer:
                 'Student ID': perf.student.student_id,
                 'First Name': perf.student.first_name,
                 'Last Name': perf.student.last_name,
+                'Department': perf.student.department,  # Added department
                 'Course Code': perf.course.code,
                 'Course Name': perf.course.name,
                 'Semester': perf.semester.name,
