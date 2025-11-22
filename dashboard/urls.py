@@ -1,15 +1,18 @@
 """
-URL patterns for the Dashboard app
-All routes here are protected (require login)
+URL Configuration for Dashboard App
 """
 
 from django.urls import path
 from . import views
 
-# App namespace
 app_name = 'dashboard'
 
 urlpatterns = [
-    # Dashboard homepage - accessible at /dashboard/
-    path('', views.dashboard, name='dashboard'),
+    # Main dashboard - redirects based on role
+    path('', views.dashboard_home, name='dashboard_home'),
+    
+    # Role-based dashboards
+    path('teacher/', views.teacher_dashboard, name='teacher_dashboard'),
+    path('admin/', views.admin_dashboard, name='admin_dashboard'),
+    path('super-admin/', views.super_admin_dashboard, name='super_admin_dashboard'),
 ]

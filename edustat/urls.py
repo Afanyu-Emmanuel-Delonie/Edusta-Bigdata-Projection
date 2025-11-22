@@ -20,6 +20,9 @@ urlpatterns = [
     
     # Dashboard app - protected area for logged-in users
     path('dashboard/', include('dashboard.urls')),
+    
+    # Performance app - handles performance metrics and reports
+    path('performance/', include('performance.urls')),
 ]
 
 # Serve media files in development

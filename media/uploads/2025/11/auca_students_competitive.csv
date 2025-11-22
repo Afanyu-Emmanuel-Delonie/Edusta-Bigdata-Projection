@@ -1,0 +1,51 @@
+Student_ID,First_Name,Last_Name,Department,Course,Group,Semester,Score,Grade,Performance_Status,Email,Attendance,Ranking
+30001,Alice,Brown,Software Engineering,Programming,A,2,93,A,Excellent,alice.brown@auca.ac.rw,92,3
+30002,Brian,Moore,Networks,Computer Networks,A,2,86,A,Excellent,brian.moore@auca.ac.rw,93,3
+30003,Michael,Taylor,Networks,Cyber Security,A,1,81,B,Good,michael.taylor@auca.ac.rw,100,3
+30004,Diana,Miller,Networks,Computer Networks,A,2,94,A,Excellent,diana.miller@auca.ac.rw,83,1
+30005,Sarah,Smith,Information Management,Information Systems,A,1,92,A,Excellent,sarah.smith@auca.ac.rw,99,3
+30006,Peter,Brown,Networks,Network Lab,A,1,78,B,Good,peter.brown@auca.ac.rw,94,2
+30007,Anna,Thomas,Networks,Network Lab,C,1,97,A,Excellent,anna.thomas@auca.ac.rw,95,1
+30008,Michael,Clark,Software Engineering,Programming,C,1,79,B,Good,michael.clark@auca.ac.rw,93,3
+30009,Paul,Thomas,Networks,Network Lab,A,2,96,A,Excellent,paul.thomas@auca.ac.rw,96,1
+30010,Emily,Thomas,Networks,Computer Networks,B,2,86,A,Excellent,emily.thomas@auca.ac.rw,98,3
+30011,Emily,Johnson,Information Management,Information Systems,B,2,84,B,Good,emily.johnson@auca.ac.rw,97,1
+30012,David,Jones,Software Engineering,Web Development,A,1,80,B,Good,david.jones@auca.ac.rw,92,3
+30013,Christine,Taylor,Information Management,Databases,B,2,81,B,Good,christine.taylor@auca.ac.rw,89,2
+30014,Sarah,Moore,Software Engineering,Web Development,A,2,87,A,Excellent,sarah.moore@auca.ac.rw,91,1
+30015,Grace,Harris,Software Engineering,Programming,A,1,87,A,Excellent,grace.harris@auca.ac.rw,98,2
+30016,Kevin,Brown,Software Engineering,Web Development,C,1,100,A,Excellent,kevin.brown@auca.ac.rw,86,1
+30017,Diana,Jackson,Networks,Cyber Security,C,1,72,B,Good,diana.jackson@auca.ac.rw,93,4
+30018,Emily,Brown,Information Management,Information Systems,C,1,76,B,Good,emily.brown@auca.ac.rw,92,4
+30019,James,Thompson,Networks,Cyber Security,C,1,86,A,Excellent,james.thompson@auca.ac.rw,95,2
+30020,Paul,Williams,Software Engineering,Programming,B,2,99,A,Excellent,paul.williams@auca.ac.rw,97,1
+30021,Linda,Smith,Information Management,Data Analytics,C,2,80,B,Good,linda.smith@auca.ac.rw,84,2
+30022,Michael,Thomas,Networks,Cyber Security,A,1,91,A,Excellent,michael.thomas@auca.ac.rw,81,1
+30023,Diana,Brown,Software Engineering,Software Engineering,C,1,75,B,Good,diana.brown@auca.ac.rw,87,3
+30024,Daniel,Smith,Software Engineering,Programming,B,2,74,B,Good,daniel.smith@auca.ac.rw,98,7
+30025,Diana,Martin,Information Management,Databases,B,1,95,A,Excellent,diana.martin@auca.ac.rw,80,1
+30026,Anna,Martin,Information Management,Information Systems,C,1,71,B,Good,anna.martin@auca.ac.rw,84,5
+30027,David,Johnson,Software Engineering,Web Development,B,1,79,B,Good,david.johnson@auca.ac.rw,84,4
+30028,Paul,Davis,Software Engineering,Web Development,B,1,82,B,Good,paul.davis@auca.ac.rw,80,2
+30029,Linda,Thompson,Networks,Computer Networks,B,1,100,A,Excellent,linda.thompson@auca.ac.rw,98,1
+30030,Grace,Brown,Information Management,Data Analytics,A,1,76,B,Good,grace.brown@auca.ac.rw,94,1
+30031,Mark,Thomas,Information Management,Databases,A,1,95,A,Excellent,mark.thomas@auca.ac.rw,85,1
+30032,Grace,Johnson,Software Engineering,Programming,A,2,76,B,Good,grace.johnson@auca.ac.rw,99,6
+30033,Paul,Brown,Information Management,Information Systems,A,1,98,A,Excellent,paul.brown@auca.ac.rw,84,1
+30034,Kevin,Thompson,Software Engineering,Programming,A,2,77,B,Good,kevin.thompson@auca.ac.rw,82,5
+30035,David,White,Software Engineering,Software Engineering,C,1,77,B,Good,david.white@auca.ac.rw,96,2
+30036,Linda,Jones,Information Management,Information Systems,A,1,93,A,Excellent,linda.jones@auca.ac.rw,83,2
+30037,Christine,White,Software Engineering,Programming,C,2,97,A,Excellent,christine.white@auca.ac.rw,81,2
+30038,Michael,Taylor,Information Management,Data Analytics,B,2,98,A,Excellent,michael.taylor@auca.ac.rw,100,1
+30039,John,Miller,Networks,Cyber Security,A,2,91,A,Excellent,john.miller@auca.ac.rw,82,1
+30040,Linda,Harris,Software Engineering,Programming,B,2,82,B,Good,linda.harris@auca.ac.rw,92,4
+30041,Sarah,Taylor,Networks,Computer Networks,A,1,99,A,Excellent,sarah.taylor@auca.ac.rw,90,2
+30042,Daniel,Smith,Networks,Computer Networks,C,2,90,A,Excellent,daniel.smith@auca.ac.rw,99,2
+30043,David,Davis,Software Engineering,Programming,C,1,93,A,Excellent,david.davis@auca.ac.rw,90,1
+30044,Robert,Wilson,Networks,Cyber Security,B,1,91,A,Excellent,robert.wilson@auca.ac.rw,84,1
+30045,Paul,Smith,Networks,Computer Networks,A,1,86,A,Excellent,paul.smith@auca.ac.rw,94,3
+30046,John,Lewis,Networks,Cyber Security,A,2,72,B,Good,john.lewis@auca.ac.rw,90,2
+30047,Peter,Garcia,Information Management,Databases,B,2,92,A,Excellent,peter.garcia@auca.ac.rw,86,1
+30048,Alice,Clark,Software Engineering,Software Engineering,A,1,98,A,Excellent,alice.clark@auca.ac.rw,89,1
+30049,James,White,Software Engineering,Web Development,A,1,71,B,Good,james.white@auca.ac.rw,91,5
+30050,Paul,Jones,Information Management,Information Systems,B,1,70,B,Good,paul.jones@auca.ac.rw,86,6

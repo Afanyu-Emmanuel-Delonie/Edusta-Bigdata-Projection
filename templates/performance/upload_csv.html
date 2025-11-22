@@ -1,0 +1,210 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Upload Student Data
+- AUCA{% endblock %} {% block content %}
+
+<div class="min-h-screen bg-gray-50 py-12">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <a
+          href="{% url 'performance:dashboard' %}"
+          class="text-blue-600 hover:text-blue-800 inline-flex items-center mb-4"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            ></path>
+          </svg>
+          Back to Dashboard
+        </a>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+          Upload Student Performance Data
+        </h1>
+        <p class="text-gray-600">
+          Upload CSV or Excel files with student grades and performance data
+        </p>
+      </div>
+
+      <!-- Upload Form -->
+      <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+        <form
+          id="csv-upload-form"
+          method="post"
+          enctype="multipart/form-data"
+          class="space-y-6"
+        >
+          {% csrf_token %}
+
+          <!-- File Upload -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Select File
+            </label>
+            {{ form.file }} {% if form.file.errors %}
+            <p class="mt-2 text-sm text-red-600">{{ form.file.errors.0 }}</p>
+            {% endif %}
+            <p class="mt-2 text-sm text-gray-500">
+              Accepted formats: CSV, XLSX, XLS (Max 10MB)
+            </p>
+          </div>
+
+          <!-- Optional Course Selection -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Course (Optional)
+            </label>
+            {{ form.course }}
+            <p class="mt-2 text-sm text-gray-500">
+              Leave empty to auto-detect from file
+            </p>
+          </div>
+
+          <!-- Optional Semester Selection -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Semester (Optional)
+            </label>
+            {{ form.semester }}
+            <p class="mt-2 text-sm text-gray-500">
+              Leave empty to auto-detect from file
+            </p>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex items-center justify-between pt-4">
+            <a
+              href="{% url 'performance:dashboard' %}"
+              class="text-gray-600 hover:text-gray-800"
+              >Cancel</a
+            >
+            <button
+              type="submit"
+              class="bg-yellow-500 text-white px-8 py-3 rounded-lg hover:bg-yellow-600 transition font-semibold shadow-lg"
+            >
+              Upload and Process
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- CSV Format Instructions -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+        <h3 class="text-lg font-bold text-blue-900 mb-4 flex items-center">
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+          CSV Format Requirements
+        </h3>
+
+        <p class="text-sm text-blue-900 mb-4">
+          Your CSV file must contain the following columns:
+        </p>
+
+        <div class="bg-white rounded-lg p-4 mb-4">
+          <ul class="space-y-2 text-sm text-gray-700">
+            <li class="flex items-start">
+              <span class="font-semibold mr-2">•</span>
+              <div>
+                <strong>Student_ID:</strong> 5-digit student identification
+                number
+              </div>
+            </li>
+            <li class="flex items-start">
+              <span class="font-semibold mr-2">•</span>
+              <div><strong>First_Name:</strong> Student's first name</div>
+            </li>
+            <li class="flex items-start">
+              <span class="font-semibold mr-2">•</span>
+              <div><strong>Last_Name:</strong> Student's last name</div>
+            </li>
+            <li class="flex items-start">
+              <span class="font-semibold mr-2">•</span>
+              <div><strong>Department:</strong> Student's department</div>
+            </li>
+            <li class="flex items-start">
+              <span class="font-semibold mr-2">•</span>
+              <div><strong>Course:</strong> Course code (e.g., CS101)</div>
+            </li>
+            <li class="flex items-start">
+              <span class="font-semibold mr-2">•</span>
+              <div><strong>Group:</strong> Group or section name</div>
+            </li>
+            <li class="flex items-start">
+              <span class="font-semibold mr-2">•</span>
+              <div>
+                <strong>Semester:</strong> Semester name (e.g., "Fall 2024")
+              </div>
+            </li>
+            <li class="flex items-start">
+              <span class="font-semibold mr-2">•</span>
+              <div><strong>Score:</strong> Numerical score (0-100)</div>
+            </li>
+          </ul>
+        </div>
+
+        <p class="text-sm text-blue-900 mb-2">
+          <strong>Optional columns:</strong> Grade, Performance_Status, Ranking
+        </p>
+        <p class="text-xs text-blue-800">
+          Note: If Grade and Performance_Status are not provided, they will be
+          calculated automatically based on the score.
+        </p>
+      </div>
+
+      <!-- Sample CSV -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">Sample CSV Format</h3>
+        <div
+          class="bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto text-xs font-mono"
+        >
+          <pre>
+Student_ID,First_Name,Last_Name,Department,Course,Group,Semester,Score
+12345,John,Doe,Computer Science,CS101,Group A,Fall 2024,85
+12346,Jane,Smith,Engineering,ENG201,Group B,Fall 2024,92
+12347,Bob,Johnson,Mathematics,MATH301,Group A,Fall 2024,78</pre
+          >
+        </div>
+
+        <a
+          href="{% static 'sample_data.csv' %}"
+          class="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+        >
+          <svg
+            class="w-5 h-5 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path>
+          </svg>
+          Download Sample CSV
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

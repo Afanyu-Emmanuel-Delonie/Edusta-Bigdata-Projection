@@ -1,0 +1,556 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Teacher Dashboard -
+Performance Analysis{% endblock %} {% block content %}
+
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            Performance Dashboard
+          </h1>
+          <p class="text-gray-600">
+            Welcome, {{ user.get_full_name|default:user.username }}!
+          </p>
+        </div>
+        <div class="mt-4 md:mt-0 flex space-x-3">
+          <a
+            href="{% url 'performance:upload_csv' %}"
+            class="bg-[#1B3058] text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition inline-flex items-center shadow-lg"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+              ></path>
+            </svg>
+            Upload Data
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+        <svg
+          class="w-5 h-5 mr-2 text-blue-600"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+          ></path>
+        </svg>
+        Filters
+      </h3>
+
+      <form
+        id="dashboard-filter-form"
+        method="get"
+        action=""
+        class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4"
+      >
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Course</label
+          >
+          {{ filter_form.course }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Semester</label
+          >
+          {{ filter_form.semester }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Group</label
+          >
+          {{ filter_form.group }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Status</label
+          >
+          {{ filter_form.status }}
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1"
+            >Search</label
+          >
+          {{ filter_form.search }}
+        </div>
+      </form>
+    </div>
+
+    <!-- KPIs Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Total Students -->
+      <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Total Students
+          </h3>
+          <svg
+            class="w-8 h-8 text-blue-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold text-gray-900">
+          {{ kpis.total_students }}
+        </p>
+        <p class="text-xs text-gray-500 mt-1">Enrolled students</p>
+      </div>
+
+      <!-- Average Score -->
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Average Score
+          </h3>
+          <svg
+            class="w-8 h-8 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold text-gray-900">
+          {{ kpis.average_score }}%
+        </p>
+        <p class="text-xs text-gray-500 mt-1">Overall performance</p>
+      </div>
+
+      <!-- Pass Rate -->
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Pass Rate
+          </h3>
+          <svg
+            class="w-8 h-8 text-yellow-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold text-gray-900">{{ kpis.pass_rate }}%</p>
+        <p class="text-xs text-gray-500 mt-1">Students passing (≥50)</p>
+      </div>
+
+      <!-- Excellence Rate -->
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Excellence
+          </h3>
+          <svg
+            class="w-8 h-8 text-purple-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold text-gray-900">{{kpis.excellent_count}}</p>
+        <p class="text-xs text-gray-500 mt-1">Excellent performers</p>
+      </div>
+    </div>
+
+    <!-- Status Distribution -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div
+        class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl shadow-lg p-6 text-white"
+      >
+        <h4 class="text-sm font-semibold uppercase mb-2">Excellent</h4>
+        <p class="text-4xl font-bold">{{ kpis.excellent_count }}</p>
+        <p class="text-xs opacity-80 mt-1">Score ≥ 85</p>
+      </div>
+      <div class="bg-blue-500 rounded-xl shadow-lg p-6 text-white">
+        <h4 class="text-sm font-semibold uppercase mb-2">Good</h4>
+        <p class="text-4xl font-bold">{{ kpis.good_count }}</p>
+        <p class="text-xs opacity-80 mt-1">Score 70-84</p>
+      </div>
+      <div class="bg-yellow-500 rounded-xl shadow-lg p-6 text-white">
+        <h4 class="text-sm font-semibold uppercase mb-2">Average</h4>
+        <p class="text-4xl font-bold">{{ kpis.average_count }}</p>
+        <p class="text-xs opacity-80 mt-1">Score 50-69</p>
+      </div>
+      <div class="bg-red-500 rounded-xl shadow-lg p-6 text-white">
+        <h4 class="text-sm font-semibold uppercase mb-2">Poor</h4>
+        <p class="text-4xl font-bold">{{ kpis.poor_count }}</p>
+        <p class="text-xs opacity-80 mt-1">Score < 50</p>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <!-- Score Distribution -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">
+          <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+          Score Distribution
+        </h3>
+        <div style="position: relative; height: 400px">
+          <canvas id="canvas-distribution"></canvas>
+        </div>
+      </div>
+
+      <!-- Status Pie Chart -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">
+          <i class="fas fa-chart-pie text-green-600 mr-2"></i>
+          Performance Status
+        </h3>
+        <div style="position: relative; height: 400px">
+          <canvas id="canvas-status-pie"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Course Comparison Chart -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">
+        <i class="fas fa-graduation-cap text-purple-600 mr-2"></i>
+        Course Comparison
+      </h3>
+      <div style="position: relative; height: 400px">
+        <canvas id="canvas-course-comparison"></canvas>
+      </div>
+    </div>
+
+    <!-- Grade Distribution -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">
+        <i class="fas fa-star text-yellow-600 mr-2"></i>
+        Grade Distribution
+      </h3>
+      <div style="position: relative; height: 400px">
+        <canvas id="canvas-grade-distribution"></canvas>
+      </div>
+    </div>
+
+    <!-- Top/Bottom Performers -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">
+        <i class="fas fa-trophy text-orange-600 mr-2"></i>
+        Top 5 vs Bottom 5 Performers
+      </h3>
+      <div style="position: relative; height: 400px">
+        <canvas id="canvas-top-bottom"></canvas>
+      </div>
+    </div>
+
+    <!-- Student Performance Table -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">
+        Student Performance Records
+      </h3>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Student ID
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Name
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Course
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Semester
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Score
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Grade
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Rank
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for perf in performances %}
+            <tr class="hover:bg-gray-50">
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+              >
+                {{ perf.student.student_id }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ perf.student.get_full_name }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ perf.course.code }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ perf.semester.name }}
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-semibold {% if perf.score >= 85 %}text-green-600{% elif perf.score >= 70 %}text-blue-600{% elif perf.score >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}"
+              >
+                {{ perf.score }}
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium"
+              >
+                {{ perf.grade }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if perf.performance_status == 'Excellent' %}bg-green-100 text-green-800{% elif perf.performance_status == 'Good' %}bg-blue-100 text-blue-800{% elif perf.performance_status == 'Average' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}"
+                >
+                  {{ perf.performance_status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ perf.ranking|default:"-" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <a
+                  href="{% url 'performance:student_detail' perf.student.student_id %}"
+                  class="text-blue-600 hover:text-blue-900 font-medium"
+                  >View Details</a
+                >
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+                No performance data available. Upload CSV to get started.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      {% if performances.has_other_pages %}
+      <div class="mt-6 flex justify-center">
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+          {% if performances.has_previous %}
+
+          <a
+            href="?page={{ performances.previous_page_number }}&{{ request.GET.urlencode }}"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >Previous</a
+          >
+          {% endif %}
+
+          <span
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+          >
+            Page {{ performances.number }} of
+            {{performances.paginator.num_pages}}
+          </span>
+
+          {% if performances.has_next %}
+
+          <a
+            href="?page={{ performances.next_page_number }}&{{ request.GET.urlencode }}"
+            class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >Next</a
+          >
+          {% endif %}
+        </nav>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Recommendations Section -->
+    {% if recommendations %}
+    <div class="bg-white rounded-xl shadow-lg p-6">
+      <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+        <svg
+          class="w-5 h-5 mr-2 text-yellow-500"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          ></path>
+        </svg>
+        Recommendations & Alerts
+      </h3>
+
+      <div class="space-y-3">
+        {% for rec in recommendations %}
+        <div
+          class="border-l-4 {% if rec.priority == 'high' %}border-red-500 bg-red-50{% elif rec.priority == 'medium' %}border-yellow-500 bg-yellow-50{% else %}border-blue-500 bg-blue-50{% endif %} p-4 rounded"
+        >
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="flex items-center mb-2">
+                <span
+                  class="px-2 py-1 text-xs font-bold uppercase rounded {% if rec.priority == 'high' %}bg-red-500 text-white{% elif rec.priority == 'medium' %}bg-yellow-500 text-white{% else %}bg-blue-500 text-white{% endif %}"
+                >
+                  {{ rec.priority }}
+                </span>
+                <span class="ml-2 text-xs text-gray-600"
+                  >{{ rec.course.code }} - {{ rec.semester.name }}</span
+                >
+              </div>
+              <p class="text-sm text-gray-800">{{ rec.recommendation_text }}</p>
+            </div>
+
+            <a
+              href="{% url 'performance:resolve_recommendation' rec.id %}"
+              class="ml-4 text-green-600 hover:text-green-800 text-sm font-medium whitespace-nowrap"
+              >Mark Resolved</a
+            >
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %} {% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+<script>
+  console.log('=== Chart Script Loading ===');
+
+  // Check if Chart.js loaded
+  if (typeof Chart === 'undefined') {
+      console.error('❌ Chart.js failed to load!');
+      alert('Chart.js library failed to load. Please refresh the page.');
+  } else {
+      console.log('✅ Chart.js loaded successfully');
+  }
+
+  // Parse chart data from Django template
+  const chartData = {
+      distribution: {{ charts.distribution|safe }},
+      statusPie: {{ charts.status_pie|safe }},
+      courseComparison: {{ charts.course_comparison|safe }},
+      gradeDistribution: {{ charts.grade_distribution|safe }},
+      topBottom: {{ charts.top_bottom|safe }}
+  };
+
+  console.log('Chart data loaded:', Object.keys(chartData));
+
+  // Function to create a chart
+  function createChart(canvasId, config) {
+      try {
+          const canvas = document.getElementById(canvasId);
+
+          if (!canvas) {
+              console.error(`❌ Canvas ${canvasId} not found`);
+              return;
+          }
+
+          if (!config) {
+              console.error(`❌ No config for ${canvasId}`);
+              return;
+          }
+
+          // Create the chart
+          new Chart(canvas, config);
+          console.log(`✅ Chart ${canvasId} created successfully`);
+
+      } catch (error) {
+          console.error(`❌ Error creating chart ${canvasId}:`, error);
+      }
+  }
+
+  // Initialize all charts when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+      console.log('=== Initializing Charts ===');
+
+      // Create each chart
+      createChart('canvas-distribution', chartData.distribution);
+      createChart('canvas-status-pie', chartData.statusPie);
+      createChart('canvas-course-comparison', chartData.courseComparison);
+      createChart('canvas-grade-distribution', chartData.gradeDistribution);
+      createChart('canvas-top-bottom', chartData.topBottom);
+
+      console.log('=== All Charts Initialized ===');
+  });
+</script>
+{% endblock %}
