@@ -1,0 +1,560 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Student Profile -
+{{ student.get_full_name }}{% endblock %} {% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Back Button -->
+    <div class="mb-6">
+      <a
+        href="{% url 'performance:dashboard' %}"
+        class="inline-flex items-center text-blue-600 hover:text-blue-800"
+      >
+        <svg
+          class="w-5 h-5 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          ></path>
+        </svg>
+        Back to Dashboard
+      </a>
+    </div>
+
+    {% if no_data %}
+    <!-- No Data Message -->
+    <div class="bg-white rounded-xl shadow-lg p-12 text-center">
+      <svg
+        class="w-24 h-24 mx-auto text-gray-400 mb-4"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+        ></path>
+      </svg>
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">
+        No Performance Data Available
+      </h2>
+      <p class="text-gray-600 mb-6">
+        There are no performance records for student
+        <strong>{{ student.get_full_name }}</strong> ({{ student.student_id }}).
+      </p>
+      <a
+        href="{% url 'performance:upload_csv' %}"
+        class="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+      >
+        <svg
+          class="w-5 h-5 mr-2"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+          ></path>
+        </svg>
+        Upload Performance Data
+      </a>
+    </div>
+
+    {% else %}
+    <!-- Student Profile Header -->
+    <div
+      class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-8 mb-8 text-white"
+    >
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div class="flex items-center space-x-6">
+          <!-- Avatar -->
+          <div class="bg-white rounded-full p-1">
+            <div
+              class="bg-blue-100 rounded-full w-24 h-24 flex items-center justify-center"
+            >
+              <span class="text-4xl font-bold text-blue-600">
+                {{ student.first_name.0|upper }}{{ student.last_name.0|upper }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Student Info -->
+          <div>
+            <h1 class="text-3xl font-bold mb-2">{{ student.get_full_name }}</h1>
+            <div class="space-y-1 text-blue-100">
+              <p class="flex items-center">
+                <svg
+                  class="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
+                  ></path>
+                </svg>
+                <strong>Student ID:</strong>&nbsp;{{ student.student_id }}
+              </p>
+              <p class="flex items-center">
+                <svg
+                  class="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
+                  ></path>
+                </svg>
+                <strong>Department:</strong>&nbsp;{{
+                student.department|default:"N/A" }}
+              </p>
+              {% if student.email %}
+              <p class="flex items-center">
+                <svg
+                  class="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                  ></path>
+                </svg>
+                {{ student.email }}
+              </p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Overall Stats -->
+        <div
+          class="mt-6 md:mt-0 bg-white bg-opacity-20 rounded-lg p-6 backdrop-blur-sm"
+        >
+          <div class="text-center">
+            <p class="text-sm font-medium text-blue-100 mb-1">
+              Overall Average
+            </p>
+            <p class="text-4xl font-bold">
+              {{ student_stats.overall_average }}%
+            </p>
+            <p class="text-sm text-blue-100 mt-2">
+              {{ student_stats.total_courses }} Courses Taken
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Performance Indicators -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Overall Average -->
+      <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Overall Average
+          </h3>
+          <svg
+            class="w-8 h-8 text-blue-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold text-gray-900">
+          {{ student_stats.overall_average }}%
+        </p>
+        <p class="text-xs text-gray-500 mt-1">Across all courses</p>
+      </div>
+
+      <!-- Semester Average -->
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Current Semester
+          </h3>
+          <svg
+            class="w-8 h-8 text-green-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold text-gray-900">
+          {{ student_stats.current_semester_avg }}%
+        </p>
+        <p class="text-xs text-gray-500 mt-1">Latest semester performance</p>
+      </div>
+
+      <!-- Overall Rank -->
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Overall Rank
+          </h3>
+          <svg
+            class="w-8 h-8 text-yellow-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold text-gray-900">
+          #{{ student_stats.overall_rank }}
+        </p>
+        <p class="text-xs text-gray-500 mt-1">
+          Out of {{ student_stats.total_students }} students
+        </p>
+      </div>
+
+      <!-- Best Performance -->
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Best Score
+          </h3>
+          <svg
+            class="w-8 h-8 text-purple-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold text-gray-900">
+          {{ student_stats.highest_score }}%
+        </p>
+        <p class="text-xs text-gray-500 mt-1">
+          {{ student_stats.best_course }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Semester Performance Breakdown -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      {% for sem_stat in semester_stats %}
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 border-t-4 {% if sem_stat.semester_type == '1' %}border-blue-500{% elif sem_stat.semester_type == '2' %}border-green-500{% else %}border-yellow-500{% endif %}"
+      >
+        <h3 class="text-lg font-bold text-gray-900 mb-4">
+          {{ sem_stat.semester_name }}
+        </h3>
+
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Average Score</span>
+            <span class="text-xl font-bold text-gray-900"
+              >{{ sem_stat.average }}%</span
+            >
+          </div>
+
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Semester Rank</span>
+            <span class="text-lg font-semibold text-gray-900"
+              >#{{ sem_stat.rank }}</span
+            >
+          </div>
+
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Courses</span>
+            <span class="text-lg font-semibold text-gray-900"
+              >{{ sem_stat.course_count }}</span
+            >
+          </div>
+
+          <div class="pt-3 border-t border-gray-200">
+            <span
+              class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if sem_stat.status == 'Excellent' %}bg-green-100 text-green-800 {% elif sem_stat.status == 'Good' %}bg-blue-100 text-blue-800 {% elif sem_stat.status == 'Average' %}bg-yellow-100 text-yellow-800 {% else %}bg-red-100 text-red-800{% endif %}"
+            >
+              {{ sem_stat.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Performance Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <!-- Course Performance Chart -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">
+          <i class="fas fa-chart-bar text-blue-600 mr-2"></i>
+          Performance by Course
+        </h3>
+        <div style="position: relative; height: 400px">
+          <canvas id="canvas-course-performance"></canvas>
+        </div>
+      </div>
+
+      <!-- Progress Over Time -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-lg font-bold text-gray-900 mb-4">
+          <i class="fas fa-chart-line text-green-600 mr-2"></i>
+          Progress Over Time
+        </h3>
+        <div style="position: relative; height: 400px">
+          <canvas id="canvas-progress"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grade Distribution -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+      <h3 class="text-lg font-bold text-gray-900 mb-4">
+        <i class="fas fa-chart-pie text-purple-600 mr-2"></i>
+        Grade Distribution
+      </h3>
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        {% for grade, count in grade_distribution.items %}
+        <div class="text-center p-4 bg-gray-50 rounded-lg">
+          <p class="text-3xl font-bold text-gray-900">{{ count }}</p>
+          <p class="text-sm text-gray-600">Grade {{ grade }}</p>
+        </div>
+        {% endfor %}
+      </div>
+      <div style="position: relative; height: 300px">
+        <canvas id="canvas-grade-dist"></canvas>
+      </div>
+    </div>
+
+    <!-- Detailed Course Table -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">
+          <i class="fas fa-table text-blue-600 mr-2"></i>
+          All Course Records
+        </h3>
+        <button
+          onclick="exportTableToCSV()"
+          class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+        >
+          <svg
+            class="w-5 h-5 inline mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            ></path>
+          </svg>
+          Export to CSV
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table id="course-table" class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Course Code
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Course Name
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Semester
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Score
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Grade
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Rank
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Class Average
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for perf in performances %}
+            <tr class="hover:bg-gray-50">
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
+              >
+                {{ perf.course.code }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ perf.course.name }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ perf.semester.name }}
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm font-bold {% if perf.score >= 85 %}text-green-600 {% elif perf.score >= 70 %}text-blue-600 {% elif perf.score >= 50 %}text-yellow-600 {% else %}text-red-600{% endif %}"
+              >
+                {{ perf.score }}%
+              </td>
+              <td
+                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium"
+              >
+                {{ perf.grade }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if perf.performance_status == 'Excellent' %}bg-green-100 text-green-800 {% elif perf.performance_status == 'Good' %}bg-blue-100 text-blue-800 {% elif perf.performance_status == 'Average' %}bg-yellow-100 text-yellow-800 {% else %}bg-red-100 text-red-800{% endif %}"
+                >
+                  {{ perf.performance_status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ perf.ranking|default:"N/A" }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {{ perf.class_average|default:"N/A" }}%
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                No performance records found for this student.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+<script>
+  {% if not no_data %}
+  // Parse chart data
+  const chartData = {
+    coursePerformance: {{ charts.course_performance|safe }},
+    progressOverTime: {{ charts.progress_over_time|safe }},
+    gradeDistribution: {{ charts.grade_distribution|safe }}
+  };
+
+  // Create charts
+  document.addEventListener('DOMContentLoaded', function() {
+    // Course Performance Chart
+    if (document.getElementById('canvas-course-performance') && chartData.coursePerformance) {
+      new Chart(document.getElementById('canvas-course-performance'), chartData.coursePerformance);
+    }
+
+    // Progress Over Time Chart
+    if (document.getElementById('canvas-progress') && chartData.progressOverTime) {
+      new Chart(document.getElementById('canvas-progress'), chartData.progressOverTime);
+    }
+
+    // Grade Distribution Chart
+    if (document.getElementById('canvas-grade-dist') && chartData.gradeDistribution) {
+      new Chart(document.getElementById('canvas-grade-dist'), chartData.gradeDistribution);
+    }
+  });
+
+  // Export table to CSV
+  function exportTableToCSV() {
+    const table = document.getElementById('course-table');
+    let csv = [];
+
+    // Get headers
+    const headers = [];
+    table.querySelectorAll('thead th').forEach(th => headers.push(th.textContent.trim()));
+    csv.push(headers.join(','));
+
+    // Get rows
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      const row = [];
+      tr.querySelectorAll('td').forEach(td => {
+        let text = td.textContent.trim().replace(/,/g, ';');
+        row.push(text);
+      });
+      if (row.length > 0) csv.push(row.join(','));
+    });
+
+    // Download
+    const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'student_performance_{{ student.student_id }}.csv';
+    a.click();
+  }
+  {% endif %}
+</script>
+{% endblock %}

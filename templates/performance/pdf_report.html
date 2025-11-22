@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Performance Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @page {
+        size: A4;
+        margin: 1.5cm;
+      }
+
+      body {
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+      }
+
+      @media print {
+        .page-break {
+          page-break-after: always;
+        }
+      }
+    </style>
+  </head>
+  <body class="bg-white text-gray-900">
+    <!-- Header -->
+    <div class="text-center mb-8 pb-6 border-b-4 border-indigo-600">
+      <h1 class="text-4xl font-bold text-indigo-600 mb-2">
+        Performance Analysis Report
+      </h1>
+      <p class="text-gray-600 text-lg">
+        Comprehensive Academic Performance Overview
+      </p>
+      <p class="text-gray-500 text-sm mt-2">
+        Generated on: {{ report_date|date:"F d, Y" }}
+      </p>
+      {% if filters %}
+      <div class="mt-3 text-sm text-gray-600">
+        <span class="font-semibold">Filters Applied:</span>
+        {% if filters.department %} Department: {{ filters.department }}
+        |{%endif %} {% if filters.course %} Course: {{ filters.course }}
+        |{%endif%} {% if filters.semester %} Semester: {{ filters.semester }}
+        |{%endif%} {%if filters.group %} Group: {{ filters.group }}{% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- KPI Summary -->
+    <div class="mb-8">
+      <h2
+        class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-indigo-500"
+      >
+        Key Performance Indicators
+      </h2>
+      <div class="grid grid-cols-4 gap-4">
+        <div
+          class="border-2 border-blue-500 rounded-lg p-4 text-center bg-blue-50"
+        >
+          <p class="text-xs font-bold text-gray-600 uppercase mb-1">
+            Total Students
+          </p>
+          <p class="text-3xl font-extrabold text-blue-600">
+            {{ kpis.total_students }}
+          </p>
+        </div>
+        <div
+          class="border-2 border-green-500 rounded-lg p-4 text-center bg-green-50"
+        >
+          <p class="text-xs font-bold text-gray-600 uppercase mb-1">
+            Average Score
+          </p>
+          <p class="text-3xl font-extrabold text-green-600">
+            {{ kpis.average_score }}%
+          </p>
+        </div>
+        <div
+          class="border-2 border-yellow-500 rounded-lg p-4 text-center bg-yellow-50"
+        >
+          <p class="text-xs font-bold text-gray-600 uppercase mb-1">
+            Pass Rate
+          </p>
+          <p class="text-3xl font-extrabold text-yellow-600">
+            {{ kpis.pass_rate }}%
+          </p>
+        </div>
+        <div
+          class="border-2 border-purple-500 rounded-lg p-4 text-center bg-purple-50"
+        >
+          <p class="text-xs font-bold text-gray-600 uppercase mb-1">
+            Excellence
+          </p>
+          <p class="text-3xl font-extrabold text-purple-600">
+            {{ kpis.excellent_count }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    {% if recommendations %}
+    <div class="mb-8">
+      <h2
+        class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-indigo-500"
+      >
+        Actionable Recommendations
+      </h2>
+      {% for rec in recommendations %}
+      <div
+        class="mb-4 border-l-4 {% if rec.priority == 'high' %}border-red-500 bg-red-50{% elif rec.priority == 'medium' %}border-yellow-500 bg-yellow-50{% else %}border-green-500 bg-green-50{% endif %} rounded-r-lg p-4"
+      >
+        <div class="flex items-center gap-2 mb-2">
+          <span
+            class="px-3 py-1 text-xs font-bold uppercase rounded-full {% if rec.priority == 'high' %}bg-red-600 text-white{% elif rec.priority == 'medium' %}bg-yellow-600 text-white{% else %}bg-green-600 text-white{% endif %}"
+          >
+            {{ rec.priority }} Priority
+          </span>
+          <span
+            class="px-3 py-1 bg-gray-200 text-gray-700 text-xs font-bold rounded-full"
+          >
+            {{ rec.category }}
+          </span>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 mb-2">{{ rec.title }}</h3>
+        <p class="text-sm text-gray-700 mb-2">
+          <strong>Issue:</strong> {{ rec.description }}
+        </p>
+        <div class="bg-white border-l-4 border-indigo-500 rounded p-3">
+          <p class="text-xs font-bold text-indigo-900 mb-1">
+            Recommended Action:
+          </p>
+          <p class="text-xs text-gray-800">{{ rec.action }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Performance Trends -->
+    <div class="mb-8 page-break">
+      <h2
+        class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-indigo-500"
+      >
+        Performance Trends
+      </h2>
+
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div
+          class="{% if trends.semester_progression == 'improving' %}bg-green-50 border-2 border-green-500{% elif trends.semester_progression == 'declining' %}bg-red-50 border-2 border-red-500{% else %}bg-gray-50 border-2 border-gray-500{% endif %} rounded-lg p-4"
+        >
+          <h3 class="text-lg font-bold text-gray-900 mb-2">
+            Semester Progression
+          </h3>
+          <p
+            class="text-2xl font-extrabold mb-1 {% if trends.semester_progression == 'improving' %}text-green-700{% elif trends.semester_progression == 'declining' %}text-red-700{% else %}text-gray-700{% endif %}"
+          >
+            {{ trends.semester_progression|title }}
+          </p>
+          <p class="text-sm text-gray-700">{{ trends.semester_message }}</p>
+        </div>
+
+        <div class="bg-purple-50 border-2 border-purple-500 rounded-lg p-4">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">
+            Areas Needing Improvement
+          </h3>
+          {% if trends.improvement_areas %}
+          <div class="space-y-2">
+            {% for area in trends.improvement_areas|slice:":3" %}
+            <div
+              class="flex justify-between items-center bg-white p-2 rounded text-sm"
+            >
+              <span class="font-semibold text-gray-800">{{ area.area }}</span>
+              <span class="text-red-600 font-bold"
+                >Gap: {{ area.gap|floatformat:1 }}%</span
+              >
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-sm text-gray-600">All areas performing well!</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Top & Bottom Courses -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 mb-3">
+            Top Performing Courses
+          </h3>
+          {% for course in trends.best_performing_courses %}
+          <div class="bg-green-50 border-l-4 border-green-500 rounded p-3 mb-2">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-bold text-gray-900">{{ course.course_code }}</p>
+                <p class="text-xs text-gray-600">
+                  {{ course.student_count }} students
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-xl font-bold text-green-700">
+                  {{ course.average_score|floatformat:1 }}%
+                </p>
+                <p class="text-xs text-gray-600">
+                  {{ course.pass_rate|floatformat:1 }}% pass
+                </p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 mb-3">
+            Courses Needing Attention
+          </h3>
+          {% for course in trends.worst_performing_courses %}
+          <div class="bg-red-50 border-l-4 border-red-500 rounded p-3 mb-2">
+            <div class="flex justify-between items-center">
+              <div>
+                <p class="font-bold text-gray-900">{{ course.course_code }}</p>
+                <p class="text-xs text-gray-600">
+                  {{ course.student_count }} students
+                </p>
+              </div>
+              <div class="text-right">
+                <p class="text-xl font-bold text-red-700">
+                  {{ course.average_score|floatformat:1 }}%
+                </p>
+                <p class="text-xs text-gray-600">
+                  {{ course.pass_rate|floatformat:1 }}% pass
+                </p>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- At-Risk Students -->
+    {% if at_risk_students %}
+    <div class="mb-8 page-break">
+      <h2
+        class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-red-500"
+      >
+        At-Risk Students
+      </h2>
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-100">
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Risk Level
+            </th>
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Student ID
+            </th>
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Name
+            </th>
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Avg Score
+            </th>
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Courses
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for student_data in at_risk_students|slice:":20" %}
+          <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+            <td class="border border-gray-300 px-3 py-2">
+              <span
+                class="px-2 py-1 text-xs font-bold rounded {% if student_data.risk_level == 'High' %}bg-red-600 text-white{% else %}bg-orange-500 text-white{% endif %}"
+              >
+                {{ student_data.risk_level }}
+              </span>
+            </td>
+            <td class="border border-gray-300 px-3 py-2 text-sm font-semibold">
+              {{ student_data.student.student_id }}
+            </td>
+            <td class="border border-gray-300 px-3 py-2 text-sm">
+              {{ student_data.student.get_full_name }}
+            </td>
+            <td
+              class="border border-gray-300 px-3 py-2 text-sm font-bold text-red-600"
+            >
+              {{ student_data.avg_score }}%
+            </td>
+            <td class="border border-gray-300 px-3 py-2 text-sm">
+              {{ student_data.total_courses }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Department Analysis -->
+    {% if department_analysis %}
+    <div class="mb-8 page-break">
+      <h2
+        class="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b-2 border-indigo-500"
+      >
+        Department Performance Analysis
+      </h2>
+      <table class="w-full border-collapse">
+        <thead>
+          <tr class="bg-gray-100">
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Department
+            </th>
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Students
+            </th>
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Avg Score
+            </th>
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Pass Rate
+            </th>
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Excellence
+            </th>
+            <th
+              class="border border-gray-300 px-3 py-2 text-left text-xs font-bold"
+            >
+              Status
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for dept in department_analysis %}
+          <tr class="{% cycle 'bg-white' 'bg-gray-50' %}">
+            <td class="border border-gray-300 px-3 py-2 text-sm font-semibold">
+              {{ dept.department }}
+            </td>
+            <td class="border border-gray-300 px-3 py-2 text-sm">
+              {{ dept.student_count }}
+            </td>
+            <td class="border border-gray-300 px-3 py-2 text-sm font-bold">
+              {{ dept.avg_score }}%
+            </td>
+            <td class="border border-gray-300 px-3 py-2 text-sm font-bold">
+              {{ dept.pass_rate }}%
+            </td>
+            <td class="border border-gray-300 px-3 py-2 text-sm">
+              {{ dept.excellent_count }}
+            </td>
+            <td class="border border-gray-300 px-3 py-2">
+              <span
+                class="px-2 py-1 text-xs font-bold rounded {% if dept.status == 'Excellent' %}bg-green-600 text-white{% elif dept.status == 'Good' %}bg-blue-600 text-white{% else %}bg-orange-600 text-white{% endif %}"
+              >
+                {{ dept.status }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div
+      class="mt-12 pt-4 border-t-2 border-gray-300 text-center text-sm text-gray-600"
+    >
+      <p class="font-semibold">EduStat Performance Management System</p>
+      <p>Report generated on {{ report_date|date:"F d, Y at H:i" }}</p>
+      <p class="mt-2 text-xs">
+        This is a confidential document. Please handle with care.
+      </p>
+    </div>
+  </body>
+</html>
