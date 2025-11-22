@@ -4,12 +4,36 @@ Includes CSV upload and filter forms
 """
 
 from django import forms
-from .models import Course, Semester, Group, Performance
+from .models import Course, Semester, Group, Performance, Dataset
 
 class CSVUploadForm(forms.Form):
     """
-    Form for uploading CSV/Excel files
+    Form for uploading CSV/Excel files with dataset naming
     """
+    
+    # NEW FIELD - Dataset Name
+    dataset_name = forms.CharField(
+        max_length=100,
+        required=True,
+        label='Dataset Name',
+        help_text='Give this upload a name (e.g., "Midterm Exam", "Final Grades", "Quiz 1")',
+        widget=forms.TextInput(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'e.g., Midterm Exam 2024'
+        })
+    )
+    
+    # NEW FIELD - Dataset Description
+    dataset_description = forms.CharField(
+        required=False,
+        label='Description (Optional)',
+        widget=forms.Textarea(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent',
+            'placeholder': 'Brief description of this dataset...',
+            'rows': 3
+        })
+    )
+    
     file = forms.FileField(
         label='Upload CSV or Excel File',
         help_text='Accepted formats: .csv, .xlsx, .xls',
@@ -30,8 +54,8 @@ class CSVUploadForm(forms.Form):
     
     semester = forms.ModelChoiceField(
         queryset=Semester.objects.all(),
-        required=False,
-        empty_label='Auto-detect from file',
+        required=True,  # NOW REQUIRED for dataset creation
+        empty_label='Select Semester',
         widget=forms.Select(attrs={
             'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent'
         })
@@ -60,6 +84,18 @@ class DashboardFilterForm(forms.Form):
     """
     Form for filtering dashboard data
     """
+    
+    # NEW FIELD - Dataset Filter
+    dataset = forms.ModelChoiceField(
+        queryset=Dataset.objects.filter(is_active=True),
+        required=False,
+        empty_label='All Datasets',
+        widget=forms.Select(attrs={
+            'class': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white',
+            'onchange': 'this.form.submit()'
+        })
+    )
+    
     course = forms.ModelChoiceField(
         queryset=Course.objects.all(),
         required=False,
@@ -109,11 +145,26 @@ class DashboardFilterForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
+        semester = kwargs.pop('semester', None)
+        course = kwargs.pop('course', None)
         super().__init__(*args, **kwargs)
         
         # Filter courses by user if teacher
         if user and hasattr(user, 'role') and user.role.is_teacher():
             self.fields['course'].queryset = Course.objects.filter(teacher=user)
+            # Filter datasets by teacher
+            self.fields['dataset'].queryset = Dataset.objects.filter(
+                uploaded_by=user,
+                is_active=True
+            ).order_by('-created_at')
+        else:
+            # For admins/super admins, show all datasets
+            queryset = Dataset.objects.filter(is_active=True)
+            if semester:
+                queryset = queryset.filter(semester_id=semester)
+            if course:
+                queryset = queryset.filter(course_id=course)
+            self.fields['dataset'].queryset = queryset.order_by('-created_at')
 
 
 class ExportForm(forms.Form):

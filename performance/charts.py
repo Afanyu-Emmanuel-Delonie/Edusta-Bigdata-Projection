@@ -32,20 +32,16 @@ class ChartGenerator:
                     'label': 'Number of Students',
                     'data': data,
                     'backgroundColor': [
-                        'rgba(34, 197, 94, 0.7)',   # Green for 90-100
-                        'rgba(59, 130, 246, 0.7)',  # Blue for 80-89
-                        'rgba(14, 165, 233, 0.7)',  # Light blue for 70-79
-                        'rgba(249, 115, 22, 0.7)',  # Orange for 60-69
-                        'rgba(234, 88, 12, 0.7)',   # Dark orange for 50-59
                         'rgba(239, 68, 68, 0.7)',   # Red for 0-49
+                        'rgba(249, 115, 22, 0.7)',  # Orange for 50-69
+                        'rgba(59, 130, 246, 0.7)',  # Blue for 70-84
+                        'rgba(34, 197, 94, 0.7)',   # Green for 85-100
                     ],
                     'borderColor': [
-                        'rgba(34, 197, 94, 1)',
-                        'rgba(59, 130, 246, 1)',
-                        'rgba(14, 165, 233, 1)',
-                        'rgba(249, 115, 22, 1)',
-                        'rgba(234, 88, 12, 1)',
                         'rgba(239, 68, 68, 1)',
+                        'rgba(249, 115, 22, 1)',
+                        'rgba(59, 130, 246, 1)',
+                        'rgba(34, 197, 94, 1)',
                     ],
                     'borderWidth': 2
                 }]
@@ -86,12 +82,15 @@ class ChartGenerator:
         Returns:
             JSON string for Chart.js
         """
+        pass_rate = kpis.get('pass_rate', 0)
+        fail_rate = 100 - pass_rate
+        
         chart_data = {
             'type': 'pie',
             'data': {
                 'labels': ['Pass', 'Fail'],
                 'datasets': [{
-                    'data': [kpis.get('pass_rate', 0), kpis.get('fail_rate', 0)],
+                    'data': [pass_rate, fail_rate],
                     'backgroundColor': [
                         'rgba(34, 197, 94, 0.7)',  # Green for pass
                         'rgba(239, 68, 68, 0.7)',  # Red for fail
@@ -131,6 +130,13 @@ class ChartGenerator:
         Returns:
             JSON string for Chart.js
         """
+        if not course_comparison:
+            return json.dumps({
+                'type': 'bar',
+                'data': {'labels': [], 'datasets': []},
+                'options': {'responsive': True}
+            })
+        
         labels = [course['course_code'] for course in course_comparison]
         scores = [course['average_score'] for course in course_comparison]
         pass_rates = [course['pass_rate'] for course in course_comparison]
@@ -191,6 +197,13 @@ class ChartGenerator:
         Returns:
             JSON string for Chart.js
         """
+        if not semester_trend:
+            return json.dumps({
+                'type': 'line',
+                'data': {'labels': [], 'datasets': []},
+                'options': {'responsive': True}
+            })
+        
         labels = [sem['semester'] for sem in semester_trend]
         scores = [sem['average_score'] for sem in semester_trend]
         pass_rates = [sem['pass_rate'] for sem in semester_trend]
@@ -255,31 +268,36 @@ class ChartGenerator:
         Returns:
             JSON string for Chart.js
         """
-        top_labels = [f"{p['student_name']} ({p['course']})" for p in top_performers[:5]]
-        top_scores = [p['score'] for p in top_performers[:5]]
+        if not top_performers and not bottom_performers:
+            return json.dumps({
+                'type': 'bar',
+                'data': {'labels': [], 'datasets': []},
+                'options': {'responsive': True}
+            })
         
-        bottom_labels = [f"{p['student_name']} ({p['course']})" for p in bottom_performers[:5]]
-        bottom_scores = [p['score'] for p in bottom_performers[:5]]
+        top_5 = top_performers[:5]
+        bottom_5 = bottom_performers[:5]
+        
+        top_labels = [f"{p['student_name']} ({p['course']})" for p in top_5]
+        top_scores = [p['score'] for p in top_5]
+        
+        bottom_labels = [f"{p['student_name']} ({p['course']})" for p in bottom_5]
+        bottom_scores = [p['score'] for p in bottom_5]
+        
+        all_labels = top_labels + bottom_labels
+        all_scores = top_scores + bottom_scores
+        
+        # Create colors array
+        colors = ['rgba(34, 197, 94, 0.7)'] * len(top_5) + ['rgba(239, 68, 68, 0.7)'] * len(bottom_5)
         
         chart_data = {
             'type': 'bar',
             'data': {
-                'labels': top_labels + bottom_labels,
+                'labels': all_labels,
                 'datasets': [{
                     'label': 'Scores',
-                    'data': top_scores + bottom_scores,
-                    'backgroundColor': [
-                        'rgba(34, 197, 94, 0.7)',  # Green for top
-                        'rgba(34, 197, 94, 0.7)',
-                        'rgba(34, 197, 94, 0.7)',
-                        'rgba(34, 197, 94, 0.7)',
-                        'rgba(34, 197, 94, 0.7)',
-                        'rgba(239, 68, 68, 0.7)',  # Red for bottom
-                        'rgba(239, 68, 68, 0.7)',
-                        'rgba(239, 68, 68, 0.7)',
-                        'rgba(239, 68, 68, 0.7)',
-                        'rgba(239, 68, 68, 0.7)',
-                    ],
+                    'data': all_scores,
+                    'backgroundColor': colors,
                     'borderWidth': 2
                 }]
             },
@@ -321,6 +339,13 @@ class ChartGenerator:
         for perf in performances:
             grade = perf.grade
             grade_counts[grade] = grade_counts.get(grade, 0) + 1
+        
+        if not grade_counts:
+            return json.dumps({
+                'type': 'doughnut',
+                'data': {'labels': [], 'datasets': []},
+                'options': {'responsive': True}
+            })
         
         # Sort by grade order
         grade_order = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D', 'F']

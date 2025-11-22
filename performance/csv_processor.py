@@ -1,384 +1,323 @@
 """
-CSV/Excel Upload Processor
-Handles file uploads, validation, and data import using Pandas
+CSV/Excel Processing Module
+Handles file uploads and data imports with override capability
 """
 
 import pandas as pd
-import numpy as np
-from django.core.exceptions import ValidationError
-from decimal import Decimal
-from .models import (
-    Student, Course, Semester, Group, Performance, 
-    UploadHistory
-)
+import io
+from django.db import transaction
+from .models import Student, Course, Semester, Group, Performance, Dataset
 
-class CSVProcessor:
+
+def process_csv_upload(file, user, dataset_name, dataset_description='', course=None, semester=None):
     """
-    Processes CSV/Excel files and imports student performance data
+    Process CSV/Excel file upload with dataset override
+    
+    Args:
+        file: Uploaded file object
+        user: User uploading the file
+        dataset_name: Name for the dataset
+        dataset_description: Optional description
+        course: Course object (optional)
+        semester: Semester object (required)
+    
+    Returns:
+        Dictionary with success status and results
     """
-    
-    # Required columns in CSV
-    REQUIRED_COLUMNS = [
-        'Student_ID', 'First_Name', 'Last_Name', 'Department',
-        'Course', 'Group', 'Semester', 'Score'
-    ]
-    
-    # Optional columns
-    OPTIONAL_COLUMNS = ['Grade', 'Performance_Status', 'Ranking']
-    
-    def __init__(self, file_path, user):
-        """
-        Initialize processor with file path and user
+    try:
+        # Read file based on extension
+        file_extension = file.name.split('.')[-1].lower()
         
-        Args:
-            file_path: path to uploaded CSV/Excel file
-            user: Django User object who uploaded the file
-        """
-        self.file_path = file_path
-        self.user = user
-        self.df = None
-        self.errors = []
-        self.success_count = 0
-        self.error_count = 0
-    
-    def read_file(self):
-        """
-        Read CSV or Excel file into Pandas DataFrame
+        if file_extension == 'csv':
+            df = pd.read_csv(file)
+        elif file_extension in ['xlsx', 'xls']:
+            df = pd.read_excel(file)
+        else:
+            return {
+                'success': False,
+                'errors': ['Unsupported file format. Please upload CSV or Excel file.']
+            }
         
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            file_extension = self.file_path.name.split('.')[-1].lower()
-            
-            if file_extension == 'csv':
-                self.df = pd.read_csv(self.file_path)
-            elif file_extension in ['xlsx', 'xls']:
-                self.df = pd.read_excel(self.file_path)
-            else:
-                self.errors.append(f"Unsupported file format: {file_extension}")
-                return False
-            
-            # Strip whitespace from column names
-            self.df.columns = self.df.columns.str.strip()
-            
-            return True
+        # Print original columns for debugging
+        print(f"DEBUG: Original columns: {list(df.columns)}")
         
-        except Exception as e:
-            self.errors.append(f"Error reading file: {str(e)}")
-            return False
-    
-    def validate_columns(self):
-        """
-        Validate that all required columns are present
+        # Clean column names aggressively
+        # 1. Strip whitespace
+        # 2. Replace spaces/underscores with nothing temporarily to check content
+        # 3. Convert to lowercase
+        df.columns = df.columns.str.strip().str.replace('_', '').str.replace(' ', '').str.lower()
         
-        Returns:
-            bool: True if valid, False otherwise
-        """
-        missing_columns = []
+        print(f"DEBUG: Cleaned columns: {list(df.columns)}")
         
-        for col in self.REQUIRED_COLUMNS:
-            if col not in self.df.columns:
-                missing_columns.append(col)
+        # Map expected columns (all lowercase, no spaces/underscores)
+        column_mapping = {
+            'studentid': 'student_id',
+            'firstname': 'first_name', 
+            'lastname': 'last_name',
+            'departmen': 'department',  # Handle the typo in your dataset
+            'department': 'department',
+            'course': 'course_code',
+            'coursecode': 'course_code',
+            'group': 'group',
+            'semester': 'semester',
+            'score': 'score',
+            'grade': 'grade',
+            'performance': 'performance_status',
+            'email': 'email',
+            'attendance': 'attendance',
+            'ranking': 'ranking'
+        }
+        
+        # Rename columns based on mapping
+        df.columns = [column_mapping.get(col, col) for col in df.columns]
+        
+        print(f"DEBUG: Final mapped columns: {list(df.columns)}")
+        
+        # Validate required columns (course_code is now optional)
+        required_columns = ['student_id', 'first_name', 'last_name', 'score']
+        missing_columns = [col for col in required_columns if col not in df.columns]
         
         if missing_columns:
-            self.errors.append(
-                f"Missing required columns: {', '.join(missing_columns)}"
-            )
-            return False
-        
-        return True
-    
-    def clean_data(self):
-        """
-        Clean and prepare data for import
-        """
-        # Remove rows with missing Student_ID
-        original_count = len(self.df)
-        self.df = self.df.dropna(subset=['Student_ID'])
-        
-        if len(self.df) < original_count:
-            removed = original_count - len(self.df)
-            self.errors.append(f"Removed {removed} rows with missing Student_ID")
-        
-        # Convert Student_ID to string and ensure 5 digits
-        self.df['Student_ID'] = self.df['Student_ID'].astype(str).str.zfill(5)
-        
-        # Clean string columns
-        string_columns = ['First_Name', 'Last_Name', 'Department', 'Course', 'Group', 'Semester']
-        for col in string_columns:
-            if col in self.df.columns:
-                self.df[col] = self.df[col].astype(str).str.strip()
-        
-        # Convert Score to float
-        self.df['Score'] = pd.to_numeric(self.df['Score'], errors='coerce')
-        
-        # Remove rows with invalid scores
-        invalid_scores = self.df['Score'].isna() | (self.df['Score'] < 0) | (self.df['Score'] > 100)
-        if invalid_scores.any():
-            count = invalid_scores.sum()
-            self.errors.append(f"Removed {count} rows with invalid scores")
-            self.df = self.df[~invalid_scores]
-    
-    def get_or_create_student(self, row):
-        """
-        Get or create student from row data
-        
-        Args:
-            row: pandas Series with student data
-        
-        Returns:
-            Student object or None
-        """
-        try:
-            student_id = row['Student_ID']
-            
-            student, created = Student.objects.get_or_create(
-                student_id=student_id,
-                defaults={
-                    'first_name': row['First_Name'],
-                    'last_name': row['Last_Name'],
-                    'email': f"{student_id}@auca.ac.rw",
-                    'department': row['Department'],
-                }
-            )
-            
-            # Update existing student info if needed
-            if not created:
-                student.first_name = row['First_Name']
-                student.last_name = row['Last_Name']
-                student.department = row['Department']
-                student.save()
-            
-            return student
-        
-        except Exception as e:
-            self.errors.append(f"Error creating student {row['Student_ID']}: {str(e)}")
-            return None
-    
-    def get_or_create_course(self, course_code, department):
-        """
-        Get or create course
-        
-        Args:
-            course_code: course code string
-            department: department string
-        
-        Returns:
-            Course object or None
-        """
-        try:
-            course, created = Course.objects.get_or_create(
-                code=course_code,
-                defaults={
-                    'name': course_code,  # Use code as name if not found
-                    'department': department,
-                    'teacher': self.user if hasattr(self.user, 'role') else None,
-                }
-            )
-            
-            return course
-        
-        except Exception as e:
-            self.errors.append(f"Error creating course {course_code}: {str(e)}")
-            return None
-    
-    def get_or_create_semester(self, semester_name):
-        """
-        Get or create semester
-        
-        Args:
-            semester_name: semester name (e.g., "Fall 2024")
-        
-        Returns:
-            Semester object or None
-        """
-        try:
-            # Try to parse semester name
-            parts = semester_name.split()
-            if len(parts) >= 2:
-                semester_type = parts[0]
-                year = int(parts[1])
-            else:
-                semester_type = "Fall"
-                year = 2024
-            
-            semester, created = Semester.objects.get_or_create(
-                name=semester_name,
-                defaults={
-                    'semester_type': semester_type,
-                    'year': year,
-                    'start_date': f"{year}-01-01",
-                    'end_date': f"{year}-12-31",
-                }
-            )
-            
-            return semester
-        
-        except Exception as e:
-            self.errors.append(f"Error creating semester {semester_name}: {str(e)}")
-            return None
-    
-    def get_or_create_group(self, group_name, course, semester):
-        """
-        Get or create group
-        
-        Args:
-            group_name: group name string
-            course: Course object
-            semester: Semester object
-        
-        Returns:
-            Group object or None
-        """
-        try:
-            group, created = Group.objects.get_or_create(
-                name=group_name,
-                course=course,
-                semester=semester,
-                defaults={
-                    'max_students': 30,
-                }
-            )
-            
-            return group
-        
-        except Exception as e:
-            self.errors.append(f"Error creating group {group_name}: {str(e)}")
-            return None
-    
-    def process_row(self, row):
-        """
-        Process a single row and create Performance record
-        
-        Args:
-            row: pandas Series with performance data
-        
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        try:
-            # Get or create related objects
-            student = self.get_or_create_student(row)
-            if not student:
-                return False
-            
-            course = self.get_or_create_course(row['Course'], row['Department'])
-            if not course:
-                return False
-            
-            semester = self.get_or_create_semester(row['Semester'])
-            if not semester:
-                return False
-            
-            group = self.get_or_create_group(row['Group'], course, semester)
-            if not group:
-                return False
-            
-            # Create or update Performance record
-            performance, created = Performance.objects.update_or_create(
-                student=student,
-                course=course,
-                semester=semester,
-                defaults={
-                    'group': group,
-                    'score': Decimal(str(row['Score'])),
-                    'uploaded_by': self.user,
-                }
-            )
-            
-            return True
-        
-        except Exception as e:
-            self.errors.append(f"Error processing row for student {row.get('Student_ID', 'Unknown')}: {str(e)}")
-            return False
-    
-    def process(self):
-        """
-        Main processing function
-        Reads file, validates, cleans, and imports data
-        
-        Returns:
-            dict with results: success_count, error_count, errors
-        """
-        # Step 1: Read file
-        if not self.read_file():
             return {
                 'success': False,
-                'success_count': 0,
-                'error_count': 0,
-                'errors': self.errors,
+                'errors': [
+                    f'Missing required columns: {", ".join(missing_columns)}.',
+                    f'Original columns found: {", ".join(df.columns)}',
+                    'Required: student_id, first_name, last_name, score'
+                ]
             }
         
-        # Step 2: Validate columns
-        if not self.validate_columns():
-            return {
-                'success': False,
-                'success_count': 0,
-                'error_count': 0,
-                'errors': self.errors,
-            }
-        
-        # Step 3: Clean data
-        self.clean_data()
-        
-        # Step 4: Process each row
-        total_rows = len(self.df)
-        
-        for index, row in self.df.iterrows():
-            if self.process_row(row):
-                self.success_count += 1
-            else:
-                self.error_count += 1
-        
-        # Step 5: Save upload history
-        self.save_upload_history()
+        # START TRANSACTION - Delete old data and insert new
+        with transaction.atomic():
+            # Step 1: Delete ALL existing performance records
+            deleted_count = Performance.objects.all().count()
+            Performance.objects.all().delete()
+            
+            # Step 2: Optionally delete old datasets (clean slate)
+            Dataset.objects.all().delete()
+            
+            # Step 3: Create new dataset
+            dataset = Dataset.objects.create(
+                name=dataset_name,
+                description=dataset_description,
+                semester=semester,
+                course=course,
+                uploaded_by=user if user and user.is_authenticated else None,
+                is_active=True
+            )
+            
+            print(f"DEBUG: Processing {len(df)} rows")
+            
+            # Step 4: Process new data
+            success_count = 0
+            error_count = 0
+            errors = []
+            
+            for index, row in df.iterrows():
+                try:
+                    # Debug print for first few rows
+                    if index < 3:
+                        print(f"DEBUG Row {index}: {dict(row)}")
+                    
+                    # Get or create student
+                    student_id_val = str(row['student_id']).strip()
+                    first_name_val = str(row['first_name']).strip()
+                    last_name_val = str(row['last_name']).strip()
+                    
+                    # Generate email if not provided
+                    if 'email' in row and pd.notna(row['email']):
+                        email_val = str(row['email']).strip()
+                    else:
+                        email_val = f"{student_id_val}@student.edu"
+                    
+                    # Get department (handle the typo 'departmen' in your dataset)
+                    if 'department' in row and pd.notna(row['department']):
+                        department_val = str(row['department']).strip()
+                    else:
+                        department_val = 'General'
+                    
+                    student, created = Student.objects.get_or_create(
+                        student_id=student_id_val,
+                        defaults={
+                            'first_name': first_name_val,
+                            'last_name': last_name_val,
+                            'email': email_val,
+                            'department': department_val
+                        }
+                    )
+                    
+                    if created and index < 5:
+                        print(f"DEBUG: Created student {student_id_val}")
+                    
+                    # Get or create course (now optional with fallback)
+                    if 'course_code' in row and pd.notna(row['course_code']):
+                        course_code = str(row['course_code']).strip()
+                    elif course:  # Use course from upload form if provided
+                        course_code = course.code
+                    else:
+                        course_code = 'GENERAL'  # Default fallback
+                    
+                    course_obj, created = Course.objects.get_or_create(
+                        code=course_code,
+                        defaults={
+                            'name': course_code if course_code != 'GENERAL' else 'General Course',
+                            'department': department_val,
+                            'credits': 3
+                        }
+                    )
+                    
+                    if created and index < 5:
+                        print(f"DEBUG: Created course {course_code}")
+                    
+                    # Use provided semester or get from CSV
+                    if semester:
+                        semester_obj = semester
+                    else:
+                        if 'semester' in row and pd.notna(row['semester']):
+                            semester_name = str(row['semester']).strip()
+                        else:
+                            semester_name = 'Default Semester'
+                        
+                        semester_obj, _ = Semester.objects.get_or_create(
+                            name=semester_name,
+                            defaults={
+                                'semester_type': 'Fall',
+                                'year': 2024,
+                                'start_date': '2024-01-01',
+                                'end_date': '2024-05-31',
+                                'is_active': True
+                            }
+                        )
+                    
+                    # Get or create group (optional)
+                    group_obj = None
+                    if 'group' in row and pd.notna(row['group']):
+                        group_name = str(row['group']).strip()
+                        group_obj, _ = Group.objects.get_or_create(
+                            name=group_name,
+                            course=course_obj,
+                            semester=semester_obj,
+                            defaults={
+                                'max_students': 30
+                            }
+                        )
+                    
+                    # Parse score
+                    score_val = float(row['score'])
+                    
+                    # Create performance record
+                    perf = Performance.objects.create(
+                        student=student,
+                        course=course_obj,
+                        semester=semester_obj,
+                        group=group_obj,
+                        dataset=dataset,
+                        score=score_val,
+                        uploaded_by=user if user and user.is_authenticated else None
+                    )
+                    
+                    success_count += 1
+                    
+                    if index < 3:
+                        print(f"DEBUG: Created performance {perf.id} - Student: {student_id_val}, Score: {score_val}, Grade: {perf.grade}")
+                    
+                except Exception as e:
+                    error_count += 1
+                    error_msg = f"Row {index + 2}: {str(e)}"
+                    errors.append(error_msg)
+                    if error_count <= 5:  # Only print first 5 errors
+                        print(f"ERROR: {error_msg}")
+            
+            print(f"DEBUG: Final success_count = {success_count}, error_count = {error_count}")
+            print(f"DEBUG: Total Performance records in DB = {Performance.objects.count()}")
         
         return {
             'success': True,
-            'success_count': self.success_count,
-            'error_count': self.error_count,
-            'total_rows': total_rows,
-            'errors': self.errors,
+            'success_count': success_count,
+            'error_count': error_count,
+            'errors': errors[:10],  # Limit to first 10 errors
+            'deleted_count': deleted_count,
+            'dataset_id': dataset.id
         }
-    
-    def save_upload_history(self):
-        """
-        Save upload history to database
-        """
-        try:
-            UploadHistory.objects.create(
-                uploaded_by=self.user,
-                file_name=self.file_path.name,
-                file_path=self.file_path,
-                records_count=self.success_count + self.error_count,
-                success_count=self.success_count,
-                error_count=self.error_count,
-                errors_log='\n'.join(self.errors) if self.errors else '',
-            )
-        except Exception as e:
-            print(f"Error saving upload history: {str(e)}")
+        
+    except Exception as e:
+        import traceback
+        print(f"CRITICAL ERROR: {str(e)}")
+        print(traceback.format_exc())
+        return {
+            'success': False,
+            'errors': [f'Error processing file: {str(e)}']
+        }
 
 
-def process_csv_upload(file, user):
+def validate_csv_structure(file):
     """
-    Convenience function to process CSV upload
+    Validate CSV structure before processing
     
     Args:
-        file: uploaded file object
-        user: Django User object
+        file: Uploaded file object
     
     Returns:
-        dict with processing results
+        Dictionary with validation results
     """
-    processor = CSVProcessor(file, user)
-    results = processor.process()
-    
-    # After successful import, calculate rankings
-    if results['success'] and results['success_count'] > 0:
-        from .analysis import PerformanceAnalyzer
-        analyzer = PerformanceAnalyzer(user)
-        analyzer.calculate_rankings()
-        analyzer.generate_recommendations()
-    
-    return results
+    try:
+        # Read file
+        file_extension = file.name.split('.')[-1].lower()
+        
+        if file_extension == 'csv':
+            df = pd.read_csv(file)
+        elif file_extension in ['xlsx', 'xls']:
+            df = pd.read_excel(file)
+        else:
+            return {
+                'valid': False,
+                'errors': ['Unsupported file format']
+            }
+        
+        # Clean column names
+        df.columns = df.columns.str.strip().str.replace('_', '').str.replace(' ', '').str.lower()
+        
+        # Map columns
+        column_mapping = {
+            'studentid': 'student_id',
+            'firstname': 'first_name',
+            'lastname': 'last_name',
+            'course': 'course_code',
+            'coursecode': 'course_code',
+            'score': 'score'
+        }
+        
+        df.columns = [column_mapping.get(col, col) for col in df.columns]
+        
+        # Check required columns (course_code is optional)
+        required_columns = ['student_id', 'first_name', 'last_name', 'score']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        
+        if missing_columns:
+            return {
+                'valid': False,
+                'errors': [f'Missing columns: {", ".join(missing_columns)}'],
+                'columns_found': list(df.columns)
+            }
+        
+        # Check data types
+        errors = []
+        
+        # Validate scores are numeric
+        try:
+            pd.to_numeric(df['score'], errors='coerce')
+        except:
+            errors.append('Score column must contain numeric values')
+        
+        return {
+            'valid': len(errors) == 0,
+            'errors': errors,
+            'columns_found': list(df.columns),
+            'row_count': len(df)
+        }
+        
+    except Exception as e:
+        return {
+            'valid': False,
+            'errors': [str(e)]
+        }

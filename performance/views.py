@@ -31,36 +31,52 @@ def teacher_dashboard(request):
     """
     # Get filters from request
     user = request.user if request.user.is_authenticated else None
-    filter_form = DashboardFilterForm(request.GET or None, user=user)
+    
+    # Extract semester and course for dataset filtering
+    semester_id = None
+    course_id = None
+    if request.GET.get('semester'):
+        try:
+            semester_id = int(request.GET.get('semester'))
+        except:
+            pass
+    if request.GET.get('course'):
+        try:
+            course_id = int(request.GET.get('course'))
+        except:
+            pass
+    
+    filter_form = DashboardFilterForm(
+        request.GET or None, 
+        user=user,
+        semester=semester_id,
+        course=course_id
+    )
+    
     filters = {}
     
     if filter_form.is_valid():
         cd = filter_form.cleaned_data
         # collect possible filters; model instances have an 'id' attribute
-        for key in ('course', 'semester', 'group', 'status'):
+        for key in ('course', 'semester', 'group', 'status', 'dataset'):
             if (val := cd.get(key)):
                 filters[key] = getattr(val, 'id', val)
     
     # Initialize analyzer with filters
     analyzer = PerformanceAnalyzer(user, filters=filters)
-
-    # Calculate KPIs
-    kpis = analyzer.calculate_kpis()
     
-    # Get performance distribution
+    # Calculate KPIs & get charts/data
+    kpis = analyzer.calculate_kpis()
     distribution = analyzer.get_performance_distribution()
     
-    # Get top and bottom performers
+    # Get top and bottom performers (already returns dicts)
     top_performers = analyzer.get_top_performers(10)
     bottom_performers = analyzer.get_bottom_performers(10)
     
-    # Get course comparison
+    # Get comparison data
     course_comparison = analyzer.get_course_comparison()
-    
-    # Get semester trend
     semester_trend = analyzer.get_semester_trend()
     
-    # Generate charts
     chart_generator = ChartGenerator()
     charts = {
         'distribution': chart_generator.generate_score_distribution(distribution),
@@ -71,7 +87,7 @@ def teacher_dashboard(request):
         'grade_distribution': chart_generator.generate_grade_distribution(analyzer.get_filtered_queryset()),
     }
     
-    # Get student performance table
+    # Student table
     performances_queryset = analyzer.get_filtered_queryset()
     
     # Apply search if provided
@@ -83,13 +99,11 @@ def teacher_dashboard(request):
             Q(student__last_name__icontains=search_query)
         )
     
-    # Pagination
     paginator = Paginator(performances_queryset, 25)
     page_number = request.GET.get('page', 1)
     performances_page = paginator.get_page(page_number)
     
-    # Get recommendations
-    recommendations = analyzer.get_recommendations(unresolved_only=True)[:10]
+    recommendations = analyzer.get_recommendations(unresolved_only=True)[:20]
     
     context = {
         'page_title': 'Teacher Dashboard',
@@ -97,14 +111,13 @@ def teacher_dashboard(request):
         'kpis': kpis,
         'charts': charts,
         'performances': performances_page,
-        'top_performers': top_performers[:5],
-        'bottom_performers': bottom_performers[:5],
+        'top_performers': top_performers[:5],  # These are already dicts
+        'bottom_performers': bottom_performers[:5],  # These are already dicts
         'recommendations': recommendations,
         'search_query': search_query,
     }
     
     return render(request, 'performance/teacher_dashboard.html', context)
-
 
 def admin_dashboard(request):
     """
@@ -252,7 +265,8 @@ def api_filter_options(request):
     
 def upload_csv(request):
     """
-    Handle CSV/Excel file upload - Open access
+    Handle CSV/Excel file upload with dataset override
+    Replaces ALL existing data with new upload
     """
     user = request.user if request.user.is_authenticated else None
     
@@ -260,11 +274,22 @@ def upload_csv(request):
         form = CSVUploadForm(request.POST, request.FILES)
         if form.is_valid():
             file = form.cleaned_data['file']
+            dataset_name = form.cleaned_data['dataset_name']
+            dataset_description = form.cleaned_data.get('dataset_description', '')
+            course = form.cleaned_data.get('course')
+            semester = form.cleaned_data.get('semester')
 
-            # Process the file
-            results = process_csv_upload(file, user)
+            # Process the file with override
+            results = process_csv_upload(
+                file, 
+                user,
+                dataset_name=dataset_name,
+                dataset_description=dataset_description,
+                course=course,
+                semester=semester
+            )
 
-            # If AJAX request, return JSON instead of redirecting
+            # Check if AJAX request
             is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
             if results['success']:
@@ -273,18 +298,27 @@ def upload_csv(request):
                         'success': True,
                         'success_count': results.get('success_count', 0),
                         'error_count': results.get('error_count', 0),
+                        'deleted_count': results.get('deleted_count', 0),
                         'errors': results.get('errors', []),
                     })
 
+                # Show success message with override info
                 messages.success(
                     request,
-                    f"File uploaded successfully! {results['success_count']} records imported."
+                    f"✅ Dataset '{dataset_name}' uploaded successfully!"
                 )
+                messages.info(
+                    request,
+                    f"📊 {results['success_count']} new records imported. "
+                    f"Previous data ({results.get('deleted_count', 0)} records) has been replaced."
+                )
+                
                 if results['error_count'] > 0:
                     messages.warning(
                         request,
-                        f"{results['error_count']} records had errors."
+                        f"⚠️ {results['error_count']} records had errors and were skipped."
                     )
+                
                 return redirect('performance:dashboard')
             else:
                 if is_ajax:
@@ -293,18 +327,34 @@ def upload_csv(request):
                         'errors': results.get('errors', [])
                     }, status=400)
 
+                messages.error(
+                    request,
+                    "❌ Upload failed. Please check the errors below."
+                )
                 for error in results['errors']:
                     messages.error(request, error)
+        else:
+            # Form validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = CSVUploadForm()
+    
+    # Get current dataset info for display - FIXED LINE BELOW
+    from .models import Dataset, Performance
+    current_records = Performance.objects.count()
+    latest_dataset = Dataset.objects.order_by('-created_at').first()  # Changed from uploaded_at
     
     context = {
         'page_title': 'Upload Student Data',
         'form': form,
+        'current_records': current_records,
+        'latest_dataset': latest_dataset,
+        'warning_message': 'Note: Uploading new data will REPLACE all existing performance records.'
     }
     
     return render(request, 'performance/upload_csv.html', context)
-
 
 def export_data(request):
     """

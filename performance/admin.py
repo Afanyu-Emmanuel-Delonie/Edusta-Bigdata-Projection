@@ -5,7 +5,7 @@ Django Admin Configuration for Performance Management
 from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
-    UserRole, Course, Student, Semester, Group, 
+    UserRole, Course, Student, Semester, Group, Dataset,
     Performance, UploadHistory, Recommendation
 )
 
@@ -52,22 +52,48 @@ class GroupAdmin(admin.ModelAdmin):
     raw_id_fields = ['course', 'semester']
 
 
+@admin.register(Dataset)
+class DatasetAdmin(admin.ModelAdmin):
+    list_display = ['name', 'course', 'semester', 'uploaded_by', 'created_at', 'is_active']
+    list_filter = ['semester', 'course', 'is_active', 'created_at']
+    search_fields = ['name', 'description', 'course__code', 'semester__name']
+    raw_id_fields = ['course', 'semester', 'uploaded_by']
+    ordering = ['-created_at']
+    date_hierarchy = 'created_at'
+    
+    def get_queryset(self, request):
+        """Show datasets based on user role"""
+        qs = super().get_queryset(request)
+        if hasattr(request.user, 'role'):
+            if request.user.role.is_teacher():
+                # Teachers only see their datasets
+                return qs.filter(uploaded_by=request.user)
+        return qs
+
+
 @admin.register(Performance)
 class PerformanceAdmin(admin.ModelAdmin):
     list_display = [
-        'student', 'course', 'semester', 'score_display', 
+        'student', 'course', 'semester', 'dataset_display', 'score_display', 
         'grade', 'performance_status_badge', 'ranking'
     ]
     list_filter = [
-        'semester', 'course', 'performance_status', 'grade'
+        'semester', 'course', 'dataset', 'performance_status', 'grade'
     ]
     search_fields = [
         'student__student_id', 'student__first_name', 
         'student__last_name', 'course__code'
     ]
-    raw_id_fields = ['student', 'course', 'semester', 'group']
+    raw_id_fields = ['student', 'course', 'semester', 'group', 'dataset']
     ordering = ['-semester', 'course', '-score']
     date_hierarchy = 'uploaded_at'
+    
+    def dataset_display(self, obj):
+        """Display dataset name"""
+        if obj.dataset:
+            return obj.dataset.name
+        return '-'
+    dataset_display.short_description = 'Dataset'
     
     def score_display(self, obj):
         """Display score with color coding"""
@@ -80,7 +106,6 @@ class PerformanceAdmin(admin.ModelAdmin):
             color = 'orange'
         else:
             color = 'red'
-        # FIXED: Format the score BEFORE passing to format_html
         score_formatted = f'{score:.2f}'
         return format_html(
             '<span style="color: {}; font-weight: bold;">{}</span>',
@@ -107,12 +132,12 @@ class PerformanceAdmin(admin.ModelAdmin):
 @admin.register(UploadHistory)
 class UploadHistoryAdmin(admin.ModelAdmin):
     list_display = [
-        'file_name', 'uploaded_by', 'course', 'semester',
+        'file_name', 'uploaded_by', 'course', 'semester', 'dataset',
         'records_count', 'success_count', 'error_count', 'uploaded_at'
     ]
-    list_filter = ['uploaded_at', 'course', 'semester']
+    list_filter = ['uploaded_at', 'course', 'semester', 'dataset']
     search_fields = ['file_name', 'uploaded_by__username']
-    raw_id_fields = ['uploaded_by', 'course', 'semester']
+    raw_id_fields = ['uploaded_by', 'course', 'semester', 'dataset']
     readonly_fields = ['uploaded_at']
     ordering = ['-uploaded_at']
     date_hierarchy = 'uploaded_at'

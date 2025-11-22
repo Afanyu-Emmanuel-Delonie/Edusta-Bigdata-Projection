@@ -1,34 +1,34 @@
 """
-Performance Analysis Module
+Performance Analysis Module - Simplified for Single Dataset
 Analyzes student performance data and generates insights
 """
 
 import pandas as pd
-from django.db.models import Avg, Count, Q, Max, Min
-from decimal import Decimal
-from .models import Performance, Course, Semester, Student, Recommendation
+from django.db.models import Avg, Count, Q
+from .models import Performance, Recommendation
 
 
 class PerformanceAnalyzer:
     """
-    Analyzes performance data and generates KPIs, charts, and recommendations
+    Analyzes performance data - Simplified for single dataset usage
+    Since uploads replace all data, we don't need complex dataset filtering
     """
     
-    def __init__(self, user, filters=None):
+    def __init__(self, user=None, filters=None):
         """
         Initialize analyzer
         
         Args:
-            user: Django User object (can be None for anonymous access)
+            user: Django User object (can be None)
+            filters: Dictionary of filters (course, semester, group, status, search)
         """
         self.user = user
-        # Filters is a dict that can include keys: course, semester, group, status, search
         self.filters = filters or {}
     
     def get_filtered_queryset(self):
         """
-        Get filtered queryset of all performances
-        For now, returns all performances (no user filtering)
+        Get filtered queryset of performances
+        Simplified - no complex dataset merging needed
         
         Returns:
             QuerySet of Performance objects
@@ -37,42 +37,39 @@ class PerformanceAnalyzer:
             'student', 'course', 'semester', 'group'
         )
 
-        # Apply basic filters if provided
-        f = self.filters or {}
+        # Apply basic filters
+        f = self.filters
 
-        # Filter by course (accept id or code)
+        # Filter by course
         course = f.get('course')
         if course:
             try:
-                course_id = int(course)
-                qs = qs.filter(course__id=course_id)
-            except Exception:
+                qs = qs.filter(course__id=int(course))
+            except (ValueError, TypeError):
                 qs = qs.filter(course__code__iexact=str(course))
 
-        # Filter by semester (id or name)
+        # Filter by semester
         semester = f.get('semester')
         if semester:
             try:
-                sem_id = int(semester)
-                qs = qs.filter(semester__id=sem_id)
-            except Exception:
+                qs = qs.filter(semester__id=int(semester))
+            except (ValueError, TypeError):
                 qs = qs.filter(semester__name__iexact=str(semester))
 
-        # Filter by group (id or name)
+        # Filter by group
         group = f.get('group')
         if group:
             try:
-                group_id = int(group)
-                qs = qs.filter(group__id=group_id)
-            except Exception:
+                qs = qs.filter(group__id=int(group))
+            except (ValueError, TypeError):
                 qs = qs.filter(group__name__iexact=str(group))
 
-        # Filter by performance status
+        # Filter by status
         status = f.get('status')
         if status:
             qs = qs.filter(performance_status__iexact=str(status))
 
-        # Search across student id and names
+        # Search across student fields
         search = f.get('search')
         if search:
             qs = qs.filter(
@@ -81,266 +78,180 @@ class PerformanceAnalyzer:
                 Q(student__last_name__icontains=search)
             )
 
-        # If the user appears to be a teacher, optionally restrict to their courses
-        try:
-            if self.user and hasattr(self.user, 'role') and getattr(self.user, 'role') and getattr(self.user.role, 'is_teacher', lambda: False)():
-                qs = qs.filter(course__teacher=self.user)
-        except Exception:
-            # ignore role checks if role API isn't present
-            pass
+        return qs.order_by('-score')
 
-        return qs.order_by('-semester__start_date', '-score')
-    
     def calculate_kpis(self):
-        """
-        Calculate Key Performance Indicators
+        """Calculate Key Performance Indicators"""
+        qs = self.get_filtered_queryset()
         
-        Returns:
-            dict with KPI metrics
-        """
-        performances = self.get_filtered_queryset()
-        
-        if not performances.exists():
+        if not qs.exists():
             return {
                 'total_students': 0,
                 'average_score': 0,
                 'pass_rate': 0,
-                'fail_rate': 0,
-                'total_courses': 0,
-                'highest_score': 0,
-                'lowest_score': 0,
+                'excellent_count': 0,
+                'good_count': 0,
+                'average_count': 0,
+                'poor_count': 0,
             }
         
-        total = performances.count()
-        passing = performances.filter(score__gte=50).count()
-        failing = performances.filter(score__lt=50).count()
+        total = qs.count()
+        avg_score = qs.aggregate(Avg('score'))['score__avg'] or 0
         
-        scores = performances.values_list('score', flat=True)
-        avg_score = sum(scores) / len(scores) if scores else 0
+        # Count by performance levels
+        excellent = qs.filter(score__gte=85).count()
+        good = qs.filter(score__gte=70, score__lt=85).count()
+        average = qs.filter(score__gte=50, score__lt=70).count()
+        poor = qs.filter(score__lt=50).count()
+        
+        # Calculate pass rate
+        passed = qs.filter(score__gte=50).count()
+        pass_rate = (passed / total * 100) if total > 0 else 0
         
         return {
-            'total_students': performances.values('student').distinct().count(),
-            'average_score': round(avg_score, 2),
-            'pass_rate': round((passing / total * 100), 2) if total > 0 else 0,
-            'fail_rate': round((failing / total * 100), 2) if total > 0 else 0,
-            'total_courses': performances.values('course').distinct().count(),
-            'highest_score': performances.aggregate(Max('score'))['score__max'] or 0,
-            'lowest_score': performances.aggregate(Min('score'))['score__min'] or 0,
+            'total_students': total,
+            'average_score': round(float(avg_score), 2),
+            'pass_rate': round(pass_rate, 2),
+            'excellent_count': excellent,
+            'good_count': good,
+            'average_count': average,
+            'poor_count': poor,
         }
-    
+
     def get_performance_distribution(self):
-        """
-        Get distribution of scores in ranges
+        """Get score distribution by ranges"""
+        qs = self.get_filtered_queryset()
         
-        Returns:
-            dict with score ranges and counts
-        """
-        performances = self.get_filtered_queryset()
-        
-        ranges = {
-            '90-100': performances.filter(score__gte=90, score__lte=100).count(),
-            '80-89': performances.filter(score__gte=80, score__lt=90).count(),
-            '70-79': performances.filter(score__gte=70, score__lt=80).count(),
-            '60-69': performances.filter(score__gte=60, score__lt=70).count(),
-            '50-59': performances.filter(score__gte=50, score__lt=60).count(),
-            '0-49': performances.filter(score__gte=0, score__lt=50).count(),
+        return {
+            '0-49': qs.filter(score__lt=50).count(),
+            '50-69': qs.filter(score__gte=50, score__lt=70).count(),
+            '70-84': qs.filter(score__gte=70, score__lt=85).count(),
+            '85-100': qs.filter(score__gte=85).count(),
         }
-        
-        return ranges
-    
+
     def get_top_performers(self, limit=10):
         """
-        Get top performing students
-        
-        Args:
-            limit: number of top performers to return
+        Get top performing students as dictionaries
         
         Returns:
-            list of dicts with student info and scores
+            List of dictionaries with student data
         """
-        performances = self.get_filtered_queryset()[:limit]
+        qs = self.get_filtered_queryset().order_by('-score')[:limit]
         
         result = []
-        for perf in performances:
+        for perf in qs:
             result.append({
-                'student_id': perf.student.student_id,
                 'student_name': perf.student.get_full_name(),
+                'student_id': perf.student.student_id,
                 'course': perf.course.code,
                 'score': float(perf.score),
+                'grade': perf.grade,
                 'semester': perf.semester.name,
             })
         
         return result
-    
+
     def get_bottom_performers(self, limit=10):
         """
-        Get bottom performing students
-        
-        Args:
-            limit: number of bottom performers to return
+        Get bottom performing students as dictionaries
         
         Returns:
-            list of dicts with student info and scores
+            List of dictionaries with student data
         """
-        performances = self.get_filtered_queryset().order_by('score')[:limit]
+        qs = self.get_filtered_queryset().order_by('score')[:limit]
         
         result = []
-        for perf in performances:
+        for perf in qs:
             result.append({
-                'student_id': perf.student.student_id,
                 'student_name': perf.student.get_full_name(),
+                'student_id': perf.student.student_id,
                 'course': perf.course.code,
                 'score': float(perf.score),
+                'grade': perf.grade,
                 'semester': perf.semester.name,
             })
         
         return result
-    
+
     def get_course_comparison(self):
-        """
-        Compare performance across courses
+        """Compare performance across courses"""
+        qs = self.get_filtered_queryset()
         
-        Returns:
-            list of dicts with course statistics
-        """
-        performances = self.get_filtered_queryset()
-        
-        courses = performances.values('course__code', 'course__name').annotate(
-            total_students=Count('student', distinct=True),
+        courses = qs.values('course__code', 'course__name').annotate(
             average_score=Avg('score'),
+            total_students=Count('id'),
+            passed=Count('id', filter=Q(score__gte=50))
         ).order_by('-average_score')
         
         result = []
         for course in courses:
-            course_perfs = performances.filter(course__code=course['course__code'])
-            total = course_perfs.count()
-            passing = course_perfs.filter(score__gte=50).count()
-            
+            total = course['total_students']
+            pass_rate = (course['passed'] / total * 100) if total > 0 else 0
             result.append({
                 'course_code': course['course__code'],
                 'course_name': course['course__name'],
-                'total_students': course['total_students'],
-                'average_score': round(float(course['average_score']), 2),
-                'pass_rate': round((passing / total * 100), 2) if total > 0 else 0,
+                'average_score': round(float(course['average_score'] or 0), 2),
+                'total_students': total,
+                'pass_rate': round(pass_rate, 2),
             })
         
         return result
-    
+
     def get_semester_trend(self):
-        """
-        Get performance trends across semesters
+        """Get performance trends across semesters"""
+        qs = self.get_filtered_queryset()
         
-        Returns:
-            list of dicts with semester statistics
-        """
-        performances = self.get_filtered_queryset()
-        
-        semesters = performances.values('semester__name', 'semester__year').annotate(
-            total_students=Count('student', distinct=True),
+        semesters = qs.values('semester__name', 'semester__start_date').annotate(
             average_score=Avg('score'),
-        ).order_by('semester__year', 'semester__name')
+            total_students=Count('id'),
+            passed=Count('id', filter=Q(score__gte=50))
+        ).order_by('semester__start_date')
         
         result = []
         for sem in semesters:
-            sem_perfs = performances.filter(semester__name=sem['semester__name'])
-            total = sem_perfs.count()
-            passing = sem_perfs.filter(score__gte=50).count()
-            
+            total = sem['total_students']
+            pass_rate = (sem['passed'] / total * 100) if total > 0 else 0
             result.append({
                 'semester': sem['semester__name'],
-                'year': sem['semester__year'],
-                'total_students': sem['total_students'],
-                'average_score': round(float(sem['average_score']), 2),
-                'pass_rate': round((passing / total * 100), 2) if total > 0 else 0,
+                'average_score': round(float(sem['average_score'] or 0), 2),
+                'total_students': total,
+                'pass_rate': round(pass_rate, 2),
             })
         
         return result
-    
-    def get_recommendations(self, unresolved_only=True):
-        """
-        Get recommendations for improvement
+
+    def get_recommendations(self, unresolved_only=False):
+        """Get recommendations for students in current dataset"""
+        qs = self.get_filtered_queryset()
+        student_ids = qs.values_list('student_id', flat=True).distinct()
         
-        Args:
-            unresolved_only: if True, only return unresolved recommendations
-        
-        Returns:
-            QuerySet of Recommendation objects
-        """
-        recommendations = Recommendation.objects.all().select_related(
-            'student', 'course'
-        ).order_by('-priority', '-created_at')
+        recommendations = Recommendation.objects.filter(
+            student_id__in=student_ids
+        ).select_related('student')
         
         if unresolved_only:
             recommendations = recommendations.filter(is_resolved=False)
         
-        return recommendations
-    
+        return recommendations.order_by('-priority', '-created_at')
+
     def export_to_dataframe(self):
-        """
-        Export performance data to Pandas DataFrame
-        
-        Returns:
-            pandas DataFrame with performance data
-        """
-        performances = self.get_filtered_queryset()
+        """Export filtered data to pandas DataFrame"""
+        qs = self.get_filtered_queryset()
         
         data = []
-        for perf in performances:
+        for perf in qs:
             data.append({
-                'Student_ID': perf.student.student_id,
-                'First_Name': perf.student.first_name,
-                'Last_Name': perf.student.last_name,
-                'Department': perf.student.department,
-                'Course': perf.course.code,
-                'Course_Name': perf.course.name,
+                'Student ID': perf.student.student_id,
+                'First Name': perf.student.first_name,
+                'Last Name': perf.student.last_name,
+                'Course Code': perf.course.code,
+                'Course Name': perf.course.name,
                 'Semester': perf.semester.name,
-                'Group': perf.group.name if perf.group else '',
+                'Group': perf.group.name if perf.group else 'N/A',
                 'Score': float(perf.score),
                 'Grade': perf.grade,
                 'Status': perf.performance_status,
+                'Ranking': perf.ranking,
             })
         
         return pd.DataFrame(data)
-    
-    def calculate_rankings(self):
-        """
-        Calculate rankings for all students in each course/semester
-        """
-        performances = self.get_filtered_queryset()
-        
-        # Group by course and semester
-        for course in Course.objects.all():
-            for semester in Semester.objects.all():
-                course_perfs = performances.filter(
-                    course=course,
-                    semester=semester
-                ).order_by('-score')
-                
-                # Update rankings
-                for rank, perf in enumerate(course_perfs, start=1):
-                    perf.ranking = rank
-                    perf.save(update_fields=['ranking'])
-    
-    def generate_recommendations(self):
-        """
-        Generate recommendations for students with low performance
-        """
-        performances = self.get_filtered_queryset().filter(score__lt=50)
-        
-        for perf in performances:
-            # Check if recommendation already exists
-            exists = Recommendation.objects.filter(
-                student=perf.student,
-                course=perf.course,
-                semester=perf.semester,
-                is_resolved=False
-            ).exists()
-            
-            if not exists:
-                Recommendation.objects.create(
-                    student=perf.student,
-                    course=perf.course,
-                    semester=perf.semester,
-                    recommendation_text=f"Student scoring {perf.score}% needs additional support in {perf.course.code}",
-                    priority='high' if perf.score < 40 else 'medium',
-                )

@@ -135,9 +135,35 @@ class Group(models.Model):
         return f"{self.course.code} - {self.name} ({self.semester})"
 
 
+# NEW MODEL - Dataset
+class Dataset(models.Model):
+    """
+    Represents a named dataset (e.g., Midterm, Final, Quiz)
+    Teachers can create multiple datasets per semester
+    Admins see merged data across all datasets for a semester
+    """
+    name = models.CharField(max_length=100)  # e.g., "Midterm Exam 2024"
+    description = models.TextField(blank=True)
+    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name='datasets')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='datasets', null=True, blank=True)
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='datasets')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['name', 'semester', 'course']
+        verbose_name = 'Dataset'
+        verbose_name_plural = 'Datasets'
+    
+    def __str__(self):
+        course_code = self.course.code if self.course else "All Courses"
+        return f"{self.name} - {course_code} - {self.semester.name}"
+
+
 class Performance(models.Model):
     """
-    Stores student performance data for a specific course/semester
+    Stores student performance data for a specific course/semester/dataset
     """
     GRADE_CHOICES = [
         ('A+', 'A+'), ('A', 'A'), ('A-', 'A-'),
@@ -157,6 +183,7 @@ class Performance(models.Model):
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='performances')
     group = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True, blank=True, related_name='performances')
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name='performances')
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name='performances', null=True, blank=True)  # NEW FIELD
     
     score = models.DecimalField(
         max_digits=5, 
@@ -174,17 +201,19 @@ class Performance(models.Model):
     
     class Meta:
         ordering = ['-semester', 'course', '-score']
-        unique_together = ['student', 'course', 'semester']
+        unique_together = ['student', 'course', 'semester', 'dataset']  # UPDATED
         verbose_name = 'Performance Record'
         verbose_name_plural = 'Performance Records'
         indexes = [
             models.Index(fields=['course', 'semester']),
             models.Index(fields=['student', 'semester']),
             models.Index(fields=['performance_status']),
+            models.Index(fields=['dataset']),  # NEW INDEX
         ]
     
     def __str__(self):
-        return f"{self.student.student_id} - {self.course.code} - {self.score}"
+        dataset_name = f" [{self.dataset.name}]" if self.dataset else ""
+        return f"{self.student.student_id} - {self.course.code}{dataset_name} - {self.score}"
     
     def save(self, *args, **kwargs):
         """
@@ -229,6 +258,7 @@ class UploadHistory(models.Model):
     file_path = models.FileField(upload_to='uploads/%Y/%m/')
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
     semester = models.ForeignKey(Semester, on_delete=models.SET_NULL, null=True, blank=True)
+    dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True, blank=True)  # NEW FIELD
     records_count = models.IntegerField(default=0)
     success_count = models.IntegerField(default=0)
     error_count = models.IntegerField(default=0)
@@ -241,7 +271,8 @@ class UploadHistory(models.Model):
         verbose_name_plural = 'Upload Histories'
     
     def __str__(self):
-        return f"{self.file_name} - {self.uploaded_by.username} - {self.uploaded_at.strftime('%Y-%m-%d %H:%M')}"
+        dataset_info = f" [{self.dataset.name}]" if self.dataset else ""
+        return f"{self.file_name}{dataset_info} - {self.uploaded_by.username} - {self.uploaded_at.strftime('%Y-%m-%d %H:%M')}"
 
 
 class Recommendation(models.Model):
