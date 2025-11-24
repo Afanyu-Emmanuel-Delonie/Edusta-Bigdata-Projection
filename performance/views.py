@@ -326,6 +326,7 @@ def api_filter_options(request):
     })
 
 
+
 def upload_csv(request):
     """Handle CSV/Excel file upload with dataset override"""
     user = request.user if request.user.is_authenticated else None
@@ -339,66 +340,91 @@ def upload_csv(request):
             course = form.cleaned_data.get('course')
             semester = form.cleaned_data.get('semester')
 
-            results = process_csv_upload(
-                file, 
-                user,
-                dataset_name=dataset_name,
-                dataset_description=dataset_description,
-                course=course,
-                semester=semester
-            )
-
             is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
 
-            if results['success']:
-                if is_ajax:
-                    return JsonResponse({
-                        'success': True,
-                        'success_count': results.get('success_count', 0),
-                        'error_count': results.get('error_count', 0),
-                        'deleted_count': results.get('deleted_count', 0),
-                        'errors': results.get('errors', []),
-                    })
+            # Call process_csv_upload - it handles its own transaction
+            try:
+                results = process_csv_upload(
+                    file, 
+                    user,
+                    dataset_name=dataset_name,
+                    dataset_description=dataset_description,
+                    course=course,
+                    semester=semester
+                )
 
-                messages.success(
-                    request,
-                    f"✅ Dataset '{dataset_name}' uploaded successfully!"
-                )
-                messages.info(
-                    request,
-                    f"📊 {results['success_count']} new records imported. "
-                    f"Previous data ({results.get('deleted_count', 0)} records) has been replaced."
-                )
-                
-                if results['error_count'] > 0:
-                    messages.warning(
+                if results['success']:
+                    if is_ajax:
+                        return JsonResponse({
+                            'success': True,
+                            'success_count': results.get('success_count', 0),
+                            'error_count': results.get('error_count', 0),
+                            'deleted_count': results.get('deleted_count', 0),
+                            'errors': results.get('errors', []),
+                        })
+
+                    messages.success(
                         request,
-                        f"⚠️ {results['error_count']} records had errors and were skipped."
+                        f"✅ Dataset '{dataset_name}' uploaded successfully!"
                     )
+                    messages.info(
+                        request,
+                        f"📊 {results['success_count']} new records imported. "
+                        f"Previous data ({results.get('deleted_count', 0)} records) has been replaced."
+                    )
+                    
+                    if results.get('error_count', 0) > 0:
+                        messages.warning(
+                            request,
+                            f"⚠️ {results['error_count']} records had errors and were skipped."
+                        )
+                    
+                    return redirect('performance:dashboard')
+                else:
+                    # Upload failed
+                    if is_ajax:
+                        return JsonResponse({
+                            'success': False,
+                            'errors': results.get('errors', ['Unknown error occurred'])
+                        }, status=400)
+
+                    messages.error(
+                        request,
+                        "❌ Upload failed. Please check the errors below."
+                    )
+                    for error in results.get('errors', []):
+                        messages.error(request, error)
+
+            except Exception as e:
+                # Handle unexpected errors
+                error_message = f"Unexpected error during upload: {str(e)}"
                 
-                return redirect('performance:dashboard')
-            else:
                 if is_ajax:
                     return JsonResponse({
                         'success': False,
-                        'errors': results.get('errors', [])
+                        'errors': [error_message]
                     }, status=400)
 
-                messages.error(
-                    request,
-                    "❌ Upload failed. Please check the errors below."
-                )
-                for error in results['errors']:
-                    messages.error(request, error)
+                messages.error(request, f"❌ {error_message}")
+                
         else:
+            # Form validation errors
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
     else:
         form = CSVUploadForm()
     
-    current_records = Performance.objects.count()
-    latest_dataset = Dataset.objects.order_by('-created_at').first()
+    # Get statistics for the upload page (with error handling)
+    try:
+        current_records = Performance.objects.count()
+    except Exception:
+        current_records = 0
+        
+    try:
+        latest_dataset = Dataset.objects.order_by('-created_at').first()
+    except Exception:
+        latest_dataset = None
     
     context = {
         'page_title': 'Upload Student Data',
@@ -409,8 +435,6 @@ def upload_csv(request):
     }
     
     return render(request, 'performance/upload_csv.html', context)
-
-
 def export_data(request):
     """Export performance data to CSV or PDF"""
     user = request.user if request.user.is_authenticated else None

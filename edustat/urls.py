@@ -23,6 +23,8 @@ urlpatterns = [
     
     # Performance app - handles performance metrics and reports
     path('performance/', include('performance.urls')),
+    
+    path('about-project/', include('about.urls')),
 ]
 
 # Serve media files in development

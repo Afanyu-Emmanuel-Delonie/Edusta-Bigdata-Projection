@@ -15,7 +15,7 @@ Performance Analysis{% endblock %} {% block content %}
             Welcome, {{ user.get_full_name|default:user.username }}!
           </p>
         </div>
-        <div class="mt-4 md:mt-0 flex space-x-3">
+        <div class="mt-4 md:mt-0 grid grid-cols-1 md:grid-cols-3 space-x-3">
           <!-- Reports Button -->
           <a
             href="{% url 'performance:reports_recommendations' %}"
@@ -56,6 +56,26 @@ Performance Analysis{% endblock %} {% block content %}
               ></path>
             </svg>
             Upload Data
+          </a>
+
+          <a
+            href="{% url 'about:project' %}"
+            class="bg-green-400 text-white px-4 py-3 rounded-lg hover:bg-green-500 transition inline-flex items-center shadow-lg"
+          >
+            <svg
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              ></path>
+            </svg>
+            About Project
           </a>
         </div>
       </div>
@@ -461,8 +481,8 @@ Performance Analysis{% endblock %} {% block content %}
           <span
             class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
           >
-            Page {{ performances.number }} of {{
-            performances.paginator.num_pages }}
+            Page {{ performances.number }} of
+            {{performances.paginator.num_pages}}
           </span>
 
           {% if performances.has_next %}
