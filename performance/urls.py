@@ -17,4 +17,5 @@ urlpatterns = [
 
     # Updated this line: name should match your template
     path('reports/', views.reports_and_recommendations, name='reports_recommendations'),
+    path('debug-charts/', views.debug_charts, name='debug_charts'),
 ]

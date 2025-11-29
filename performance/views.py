@@ -500,6 +500,27 @@ def reports_and_recommendations(request):
     filters = build_filters(filter_form)
 
     analyzer = PerformanceAnalyzer(user, filters=filters)
+    
+    # Get KPIs and charts
+    kpis = analyzer.calculate_kpis()
+    distribution = analyzer.get_performance_distribution()
+    course_comparison = analyzer.get_course_comparison()
+    semester_trend = analyzer.get_semester_trend()
+
+    # Generate charts
+    chart_generator = ChartGenerator()
+    charts = generate_charts(
+        chart_generator, 
+        analyzer, 
+        kpis, 
+        distribution, 
+        None, 
+        None, 
+        course_comparison, 
+        semester_trend
+    )
+
+    # Get recommendations and performances
     recommendations = analyzer.get_recommendations(unresolved_only=False)
     performances_queryset = analyzer.get_filtered_queryset()
     performances_page = paginate_queryset(request, performances_queryset)
@@ -507,9 +528,52 @@ def reports_and_recommendations(request):
     context = {
         'page_title': 'Reports & Recommendations',
         'filter_form': filter_form,
+        'kpis': kpis,
+        'charts': charts,
         'performances': performances_page,
         'recommendations': recommendations,
         'search_query': request.GET.get('search', ''),
     }
 
     return render(request, 'performance/reports.html', context)
+
+def debug_charts(request):
+    """Debug view to check chart data"""
+    user = request.user if request.user.is_authenticated else None
+    analyzer = PerformanceAnalyzer(user)
+    
+    # Get all data
+    kpis = analyzer.calculate_kpis()
+    distribution = analyzer.get_performance_distribution()
+    course_comparison = analyzer.get_course_comparison()
+    semester_trend = analyzer.get_semester_trend()
+    
+    chart_generator = ChartGenerator()
+    charts = {
+        'distribution': chart_generator.generate_score_distribution(distribution),
+        'status_pie': chart_generator.generate_status_pie_chart(kpis),
+        'course_comparison': chart_generator.generate_course_comparison(course_comparison),
+        'semester_trend': chart_generator.generate_semester_trend(semester_trend),
+    }
+    
+    # Convert to JSON to check serialization
+    charts_json = {}
+    for key, chart in charts.items():
+        try:
+            charts_json[key] = json.dumps(chart, cls=DjangoJSONEncoder)
+        except Exception as e:
+            charts_json[key] = f"JSON Error: {str(e)}"
+    
+    debug_info = {
+        'kpis': kpis,
+        'distribution_data': distribution,
+        'course_comparison_data': course_comparison,
+        'semester_trend_data': semester_trend,
+        'charts_raw': charts,
+        'charts_json': charts_json,
+        'performance_count': Performance.objects.count(),
+        'student_count': Student.objects.count(),
+        'course_count': Course.objects.count(),
+    }
+    
+    return JsonResponse(debug_info)

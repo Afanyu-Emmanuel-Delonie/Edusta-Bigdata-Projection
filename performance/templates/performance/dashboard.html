@@ -1,152 +1,101 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ page_title }}</title>
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block title %}{{ page_title }}{% endblock %}
 
-    <!-- Tailwind -->
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.3/dist/tailwind.min.css" rel="stylesheet">
-</head>
+{% block content %}
+<div class="container mx-auto px-4 py-6">
 
-<body class="bg-gray-100 font-sans p-6">
+    <!-- Debug Section - Remove after testing -->
+    <div class="mb-4 p-3 bg-blue-100 rounded text-sm">
+        <strong>Debug Info:</strong> 
+        Charts: {{ charts|length }} | 
+        KPIs: {{ kpis|length }} |
+        <a href="{% url 'performance:debug_charts' %}" class="text-blue-600 underline" target="_blank">View Raw Chart Data</a>
+    </div>
 
-    <h1 class="text-3xl font-bold mb-6 text-[#051d40]">{{ page_title }}</h1>
+    <h1 class="text-3xl font-bold mb-6 text-gray-800">{{ page_title }}</h1>
 
-    <!-- KPI Section -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+    <!-- KPIs Section -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         {% for kpi_name, kpi_value in kpis.items %}
-        <div class="bg-white shadow rounded p-4 text-center">
-            <h2 class="text-lg font-semibold">{{ kpi_name }}</h2>
-            <p class="text-2xl">{{ kpi_value|default:0 }}</p>
-        </div>
+            <div class="p-4 bg-white shadow rounded text-center">
+                <h3 class="text-gray-500">{{ kpi_name|prettify_name }}</h3>
+                <p class="text-2xl font-bold text-gray-800">{{ kpi_value }}</p>
+            </div>
         {% endfor %}
     </div>
 
     <!-- Charts Section -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-        <!-- Pass/Fail Pie Chart -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-xl font-semibold mb-2">Pass/Fail Distribution</h2>
-            <canvas id="passFailChart"></canvas>
-        </div>
-
-        <!-- Feature Importance -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-xl font-semibold mb-2">Feature Importance</h2>
-            <canvas id="featureImportanceChart"></canvas>
-        </div>
-
-        <!-- Confusion Matrix -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-xl font-semibold mb-2">Confusion Matrix</h2>
-            <canvas id="confusionMatrixChart"></canvas>
-        </div>
-
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {% for chart_name, chart in charts.items %}
+            <div class="p-4 bg-white shadow rounded">
+                <h3 class="text-lg font-semibold mb-3">{{ chart_name|prettify_name }}</h3>
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="chart-{{ forloop.counter }}"></canvas>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        console.log('Initializing chart: {{ chart_name }}');
+                        try {
+                            const canvas = document.getElementById('chart-{{ forloop.counter }}');
+                            if (!canvas) {
+                                console.error('Canvas not found: chart-{{ forloop.counter }}');
+                                return;
+                            }
+                            
+                            const chartConfig = {{ chart|safe }};
+                            console.log('Chart config loaded for {{ chart_name }}:', chartConfig);
+                            
+                            new Chart(canvas, chartConfig);
+                            console.log('Chart {{ chart_name }} initialized successfully');
+                        } catch (error) {
+                            console.error('Error rendering chart {{ chart_name }}:', error);
+                            const canvas = document.getElementById('chart-{{ forloop.counter }}');
+                            if (canvas) {
+                                const ctx = canvas.getContext('2d');
+                                ctx.font = '14px Arial';
+                                ctx.fillStyle = 'red';
+                                ctx.textAlign = 'center';
+                                ctx.fillText('Chart Error: ' + error.message, canvas.width / 2, canvas.height / 2);
+                            }
+                        }
+                    });
+                </script>
+            </div>
+        {% empty %}
+            <div class="col-span-2 p-8 bg-yellow-100 rounded text-center">
+                <p class="text-yellow-800 text-lg">No charts available. Please check if you have performance data.</p>
+                <p class="text-sm mt-2">Make sure you have uploaded CSV data and have performance records in the database.</p>
+            </div>
+        {% endfor %}
     </div>
 
-    <!-- Additional Charts -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-
-        <!-- Score Distribution -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-xl font-semibold mb-2">Score Distribution</h2>
-            <canvas id="distributionChart"></canvas>
-        </div>
-
-        <!-- Status Pie Chart -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-xl font-semibold mb-2">Status Distribution</h2>
-            <canvas id="statusPieChart"></canvas>
-        </div>
-
-        <!-- Course Comparison -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-xl font-semibold mb-2">Course Comparison</h2>
-            <canvas id="courseComparisonChart"></canvas>
-        </div>
-
-        <!-- Semester Trend -->
-        <div class="bg-white shadow rounded p-4">
-            <h2 class="text-xl font-semibold mb-2">Semester Trend</h2>
-            <canvas id="semesterTrendChart"></canvas>
-        </div>
-
+    <!-- Rest of your dashboard content -->
+    {% if top_performers %}
+    <div class="mb-6 p-4 bg-white shadow rounded">
+        <h2 class="text-xl font-semibold mb-3">Top Performers</h2>
+        <!-- Top performers content -->
     </div>
+    {% endif %}
 
-    <!-- ========================= -->
-    <!--         SCRIPTS           -->
-    <!-- ========================= -->
-    <script>
-        // =========================
-        // ML Charts
-        // =========================
+</div>
 
-        const passFailData = {{ pass_fail_distribution|safe }};
-        const ctxPassFail = document.getElementById('passFailChart').getContext('2d');
-        new Chart(ctxPassFail, {
-            type: 'pie',
-            data: {
-                labels: Object.keys(passFailData),
-                datasets: [{
-                    label: 'Pass/Fail',
-                    data: Object.values(passFailData),
-                    backgroundColor: ['#34d399', '#f87171']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-        });
+<!-- Load Chart.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-        const featureData = {{ feature_importance|safe }};
-        const ctxFeature = document.getElementById('featureImportanceChart').getContext('2d');
-        new Chart(ctxFeature, {
-            type: 'bar',
-            data: {
-                labels: featureData.map(f => f.Feature),
-                datasets: [{ label: 'Importance', data: featureData.map(f => f.Importance), backgroundColor: '#3b82f6' }]
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
-        });
+<script>
+// Global chart initialization
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard loaded, Chart.js version:', Chart.version);
+    
+    // Test if Chart.js is loaded properly
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded!');
+        alert('Chart.js failed to load. Please check your internet connection.');
+    }
+});
+</script>
 
-        const cmData = {{ confusion_matrix_data|safe }};
-        const ctxCM = document.getElementById('confusionMatrixChart').getContext('2d');
-        const cmLabels = cmData.map((_, i) => 'Class ' + (i + 1));
-        new Chart(ctxCM, {
-            type: 'bar',
-            data: {
-                labels: cmLabels,
-                datasets: cmData.map((row, i) => ({
-                    label: 'Actual ' + (i + 1),
-                    data: row,
-                    backgroundColor: `hsl(${i * 60}, 70%, 50%)`
-                }))
-            },
-            options: { responsive: true, scales: { y: { beginAtZero: true } }, plugins: { legend: { position: 'bottom' } } }
-        });
-
-        // =========================
-        // Standard Charts
-        // =========================
-
-        const charts = {{ charts|safe }};
-
-        const ctxDistribution = document.getElementById('distributionChart').getContext('2d');
-        new Chart(ctxDistribution, charts.distribution);
-
-        const ctxStatusPie = document.getElementById('statusPieChart').getContext('2d');
-        new Chart(ctxStatusPie, charts.status_pie);
-
-        const ctxCourseComp = document.getElementById('courseComparisonChart').getContext('2d');
-        new Chart(ctxCourseComp, charts.course_comparison);
-
-        const ctxSemesterTrend = document.getElementById('semesterTrendChart').getContext('2d');
-        new Chart(ctxSemesterTrend, charts.semester_trend);
-
-    </script>
-
-</body>
-</html>
+{% endblock %}
