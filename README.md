@@ -49,7 +49,7 @@ This dataset contains fully numeric engineered features, making it ideal for mac
 
 Two models were implemented and evaluated:
 
-1. Random Forest Classifier
+- 1. Random Forest Classifier
 
 Main model for prediction
 
@@ -62,7 +62,7 @@ No scaling required
 Provided highest accuracy and stability
 
 
-2. Logistic Regression (Baseline)
+- 2. Logistic Regression (Baseline)
 
 Simple linear classifier
 
@@ -71,7 +71,7 @@ Used as a comparison model
 Helps validate Random Forest performance
 
 
-Both models generate classification metrics including:
+* Both models generate classification metrics including:
 
 - Accuracy
 - Precision
@@ -132,7 +132,7 @@ performance/ml/scripts/predict_model.py
 
 # 👥 Team Responsibilities
 
-Member 1–2: Dataset Cleaning
+- Member 1–2: Dataset Cleaning
 
 Handle missing values
 
@@ -141,7 +141,7 @@ Resolve inconsistencies
 Generate clean dataset
 
 
-Member 3: Feature Preparation
+- Member 3: Feature Preparation
 
 Analyze data
 
@@ -150,7 +150,7 @@ Engineer useful features
 Split into training & testing sets
 
 
-Member 4: Model Training
+- Member 4: Model Training
 
 Train Random Forest
 
@@ -161,7 +161,7 @@ Evaluate model performance
 Save model files
 
 
-Member 5: Prediction Logic
+- Member 5: Prediction Logic
 
 Load saved model
 
@@ -170,7 +170,7 @@ Implement prediction function
 Test prediction output
 
 
-Member 6: Django Backend Integration
+- Member 6: Django Backend Integration
 
 Connect prediction function to Django
 
@@ -179,7 +179,7 @@ Build prediction API endpoint
 Handle backend logic
 
 
-Member 7: Django Frontend
+- Member 7: Django Frontend
 
 Build input form UI
 
@@ -188,7 +188,7 @@ Display prediction results
 Style and finalize user interface
 
 
-Member 8: Documentation & Deployment
+- Member 8: Documentation & Deployment
 
 Final README
 
