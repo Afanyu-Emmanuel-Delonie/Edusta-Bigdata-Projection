@@ -1,60 +1,23 @@
 """
-Models for Student Performance Management System
-Handles courses, students, performance records, and user roles
-UPDATED: Added score components and proper calculation support
+Complete Performance Management Models with ML Prediction Fields
+Simplified - Single User Type (Django's built-in User)
 """
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 
 
-# User Role Choices
-class UserRole(models.Model):
-    """
-    Extends Django User model with role-based permissions
-    Roles: Super Admin, Admin, Teacher
-    """
-    ROLE_CHOICES = [
-        ('super_admin', 'Super Admin'),
-        ('admin', 'Admin'),
-        ('teacher', 'Teacher'),
-    ]
-    
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='role')
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='teacher')
-    department = models.CharField(max_length=100, blank=True, null=True)
-    
-    class Meta:
-        verbose_name = 'User Role'
-        verbose_name_plural = 'User Roles'
-    
-    def __str__(self):
-        return f"{self.user.username} - {self.get_role_display()}"
-    
-    def is_super_admin(self):
-        return self.role == 'super_admin'
-    
-    def is_admin(self):
-        return self.role == 'admin'
-    
-    def is_teacher(self):
-        return self.role == 'teacher'
-
-
 class Course(models.Model):
-    """
-    Represents a course offered at AUCA
-    """
-    code = models.CharField(max_length=20, unique=True)
-    name = models.CharField(max_length=200)
-    department = models.CharField(max_length=100)
-    teacher = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='courses')
-    credits = models.IntegerField(default=3)
+    """Course/Subject information"""
+    code = models.CharField(max_length=20, unique=True, help_text="Course code (e.g., CS101)")
+    name = models.CharField(max_length=200, help_text="Full course name")
+    department = models.CharField(max_length=100, blank=True)
+    credits = models.IntegerField(default=3, validators=[MinValueValidator(1), MaxValueValidator(10)])
+    teacher = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='courses_teaching')
     description = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
     
     class Meta:
         ordering = ['code']
@@ -66,19 +29,15 @@ class Course(models.Model):
 
 
 class Student(models.Model):
-    """
-    Represents a student at AUCA
-    """
-    student_id = models.CharField(max_length=10, unique=True, primary_key=True)
+    """Student information"""
+    student_id = models.CharField(max_length=20, unique=True, help_text="Student ID number")
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    email = models.EmailField(unique=True)
-    department = models.CharField(max_length=100)
-    program = models.CharField(max_length=100, blank=True, default='General')
+    email = models.EmailField(blank=True)
+    department = models.CharField(max_length=100, blank=True)
     enrollment_date = models.DateField(default=timezone.now)
     is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='student_profile')
     
     class Meta:
         ordering = ['student_id']
@@ -90,95 +49,88 @@ class Student(models.Model):
     
     def get_full_name(self):
         return f"{self.first_name} {self.last_name}"
-    
-    def get_semester_courses_count(self, semester):
-        """Get count of active courses for this student in a semester"""
-        return Performance.objects.filter(
-            student=self,
-            semester=semester,
-            dataset__is_active=True
-        ).values('course').distinct().count()
-    
-    def can_enroll_in_course(self, semester):
-        """Check if student can enroll in another course (8-course limit)"""
-        return self.get_semester_courses_count(semester) < 8
 
 
 class Semester(models.Model):
-    """
-    Represents an academic semester
-    """
-    SEMESTER_CHOICES = [
-        ('Fall', 'Fall'),
-        ('Spring', 'Spring'),
-        ('Summer', 'Summer'),
+    """Academic semester/term"""
+    SEMESTER_TYPE_CHOICES = [
+        ('fall', 'Fall'),
+        ('spring', 'Spring'),
+        ('summer', 'Summer'),
+        ('winter', 'Winter'),
     ]
     
-    name = models.CharField(max_length=50)  # e.g., "Fall 2024"
-    semester_type = models.CharField(max_length=10, choices=SEMESTER_CHOICES)
-    year = models.IntegerField()
+    name = models.CharField(max_length=50, unique=True, help_text="e.g., Fall 2024")
+    semester_type = models.CharField(max_length=10, choices=SEMESTER_TYPE_CHOICES)
+    year = models.IntegerField(validators=[MinValueValidator(2000), MaxValueValidator(2100)])
     start_date = models.DateField()
     end_date = models.DateField()
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     
     class Meta:
         ordering = ['-year', '-start_date']
-        unique_together = ['semester_type', 'year']
         verbose_name = 'Semester'
         verbose_name_plural = 'Semesters'
     
     def __str__(self):
         return self.name
+    
+    def clean(self):
+        if self.start_date and self.end_date and self.start_date >= self.end_date:
+            raise ValidationError("End date must be after start date")
 
 
 class Group(models.Model):
-    """
-    Represents a student group within a course
-    """
-    name = models.CharField(max_length=50)  # e.g., "Group A", "Section 1"
+    """Course group/section"""
+    name = models.CharField(max_length=50, help_text="Group name (e.g., Group A)")
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='groups')
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name='groups')
-    max_students = models.IntegerField(default=30)
+    max_students = models.IntegerField(default=30, validators=[MinValueValidator(1)])
     
     class Meta:
         ordering = ['course', 'name']
-        unique_together = ['name', 'course', 'semester']
+        unique_together = ['course', 'semester', 'name']
         verbose_name = 'Group'
         verbose_name_plural = 'Groups'
     
     def __str__(self):
-        return f"{self.course.code} - {self.name} ({self.semester})"
+        return f"{self.course.code} - {self.name} ({self.semester.name})"
 
 
 class Dataset(models.Model):
-    """
-    Represents a named dataset (e.g., Midterm, Final, Quiz)
-    Teachers can create multiple datasets per semester
-    Admins see merged data across all datasets for a semester
-    """
-    name = models.CharField(max_length=100)  # e.g., "Midterm Exam 2024"
+    """Dataset for organizing uploaded performance data"""
+    name = models.CharField(max_length=200, help_text="Dataset name")
     description = models.TextField(blank=True)
+    
+    # ✅ FIX: Make course nullable since CSV can contain multiple courses
+    course = models.ForeignKey(
+        Course, 
+        on_delete=models.CASCADE, 
+        related_name='datasets',
+        null=True,  # ✅ Added
+        blank=True  # ✅ Added
+    )
+    
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name='datasets')
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='datasets', null=True, blank=True)
-    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='datasets')
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='datasets_uploaded')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     
     class Meta:
         ordering = ['-created_at']
-        unique_together = ['name', 'semester', 'course']
+        # ✅ FIX: Removed course from unique_together since it can be NULL
+        # unique_together = ['name', 'course', 'semester']
         verbose_name = 'Dataset'
         verbose_name_plural = 'Datasets'
     
     def __str__(self):
-        course_code = self.course.code if self.course else "All Courses"
-        return f"{self.name} - {course_code} - {self.semester.name}"
-
+        course_str = f" - {self.course.code}" if self.course else ""
+        return f"{self.name}{course_str} ({self.semester.name})"
 
 class Performance(models.Model):
     """
-    Stores student performance data for a specific course/semester/dataset
-    UPDATED: Added all score components and calculation fields
+    Stores student performance data with ML predictions
     """
     GRADE_CHOICES = [
         ('A+', 'A+'), ('A', 'A'), ('A-', 'A-'),
@@ -200,6 +152,22 @@ class Performance(models.Model):
         ('Poor', 'Poor'),
     ]
     
+    RISK_LEVEL_CHOICES = [
+        ('CRITICAL', 'Critical Risk'),
+        ('HIGH', 'High Risk'),
+        ('MEDIUM', 'Medium Risk'),
+        ('LOW', 'Low Risk'),
+        ('NONE', 'No Risk'),
+        ('UNKNOWN', 'Unknown'),
+    ]
+    
+    TREND_CHOICES = [
+        ('IMPROVING', 'Improving'),
+        ('STABLE', 'Stable'),
+        ('DECLINING', 'Declining'),
+        ('UNKNOWN', 'Unknown'),
+    ]
+    
     # Core relationships
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='performances')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='performances')
@@ -207,7 +175,7 @@ class Performance(models.Model):
     semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name='performances')
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name='performances', null=True, blank=True)
     
-    # Score components - FIXED: Added default=0 and null=True, blank=True
+    # Score components (normalized 0-100)
     quiz1 = models.DecimalField(
         max_digits=5, decimal_places=2, 
         default=0, null=True, blank=True,
@@ -230,7 +198,7 @@ class Performance(models.Model):
         max_digits=5, decimal_places=2, 
         default=0, null=True, blank=True,
         validators=[MinValueValidator(0), MaxValueValidator(100)],
-        help_text="Attendance score (0-100)"
+        help_text="Attendance percentage (0-100)"
     )
     mid_semester = models.DecimalField(
         max_digits=5, decimal_places=2,
@@ -269,6 +237,158 @@ class Performance(models.Model):
     )
     ranking = models.IntegerField(null=True, blank=True)
     
+    # ML PREDICTION FIELDS
+    ml_predicted_pass = models.BooleanField(
+        null=True, blank=True,
+        help_text="ML prediction: True=Pass, False=Fail"
+    )
+    ml_confidence = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="ML prediction confidence (0-100%)"
+    )
+    ml_prediction_label = models.CharField(
+        max_length=10, blank=True,
+        help_text="Pass or Fail label from ML model"
+    )
+    
+    # Risk assessment
+    risk_level = models.CharField(
+        max_length=20,
+        choices=RISK_LEVEL_CHOICES,
+        default='UNKNOWN',
+        help_text="Automated risk assessment based on ML + rules"
+    )
+    risk_score = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="Composite risk score (0=no risk, 100=critical risk)"
+    )
+    
+    # Performance trend prediction
+    performance_trend = models.CharField(
+        max_length=20,
+        choices=TREND_CHOICES,
+        default='UNKNOWN',
+        help_text="Predicted trend based on historical data"
+    )
+    
+    # Predicted final score
+    predicted_final_score = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        null=True, blank=True,
+        validators=[MinValueValidator(0), MaxValueValidator(100)],
+        help_text="ML-predicted final score based on current performance"
+    )
+    
+    # Intervention recommendations
+    needs_intervention = models.BooleanField(
+        default=False,
+        help_text="Flagged for immediate intervention"
+    )
+    intervention_priority = models.IntegerField(
+        null=True, blank=True,
+        validators=[MinValueValidator(1), MaxValueValidator(10)],
+        help_text="Intervention priority (1=highest, 10=lowest)"
+    )
+    
+    # Probability scores (from Random Forest)
+    prob_fail = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        null=True, blank=True,
+        help_text="Probability of failure (0-100%)"
+    )
+    prob_pass = models.DecimalField(
+        max_digits=5, decimal_places=2,
+        null=True, blank=True,
+        help_text="Probability of passing (0-100%)"
+    )
+    
+    # ML metadata
+    ml_model_version = models.CharField(
+        max_length=50, blank=True,
+        help_text="Version of ML model used for prediction"
+    )
+    ml_predicted_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Timestamp when ML prediction was made"
+    )
+    ml_features_json = models.JSONField(
+        null=True, blank=True,
+        help_text="JSON dump of features used for prediction"
+    )
+    
+    class Performance(models.Model):
+    # ... all your existing fields ...
+    
+    # ... existing methods like calculate_grade(), calculate_status(), etc. ...
+    
+     @property
+     def gpa(self):
+            """
+            Calculate GPA for this single course (4.0 scale)
+            Formula: (Score / 100) × 4.0
+            
+            This represents what this course contributes to overall GPA
+            """
+            if not self.score:
+                return 0.0
+            
+            score = float(self.score)
+            # Convert score (0-100) to GPA (0-4.0)
+            gpa = (score / 100) * 4.0
+            
+            return round(gpa, 2)
+        
+    def calculate_ranking(self):
+            """
+            Calculate student's ranking in their course/semester
+            Returns ranking number (1 = top performer)
+            """
+            # Get all performances in same course and semester
+            same_course_semester = Performance.objects.filter(
+                course=self.course,
+                semester=self.semester
+            ).order_by('-score')
+            
+            # Find this student's position
+            rank = 1
+            for perf in same_course_semester:
+                if perf.id == self.id:
+                    return rank
+                rank += 1
+            
+            return None
+        
+    def save(self, *args, **kwargs):
+            """Auto-calculate derived fields"""
+            if self.score is None:
+                self.score = 0
+            
+            if not self.grade:
+                self.grade = self.calculate_grade()
+            if not self.status:
+                self.status = self.calculate_status()
+            if not self.performance_status:
+                self.performance_status = self.calculate_performance_status()
+            
+            if self.ml_predicted_pass is not None and not self.risk_level:
+                self.risk_level = self.calculate_risk_level()
+            
+            # Calculate ranking if not set
+            is_new = self.pk is None
+            
+            self.full_clean()
+            super().save(*args, **kwargs)
+            
+            # Update ranking after save (need ID first)
+            if is_new or not self.ranking:
+                self.ranking = self.calculate_ranking()
+                # Save again with ranking (use update to avoid recursion)
+                Performance.objects.filter(pk=self.pk).update(ranking=self.ranking)
+    
     # Metadata
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='uploads')
     uploaded_at = models.DateTimeField(auto_now_add=True)
@@ -285,58 +405,35 @@ class Performance(models.Model):
             models.Index(fields=['status']),
             models.Index(fields=['performance_status']),
             models.Index(fields=['dataset']),
+            models.Index(fields=['risk_level']),
+            models.Index(fields=['ml_predicted_pass']),
+            models.Index(fields=['needs_intervention']),
         ]
     
     def __str__(self):
         dataset_name = f" [{self.dataset.name}]" if self.dataset else ""
         return f"{self.student.student_id} - {self.course.code}{dataset_name} - {self.score}"
     
-    def clean(self):
-        """Validate 8-course limit per student per semester"""
-        super().clean()
-        
-        # Check if this is a new record (not an update)
-        if not self.pk:
-            # Count existing courses for this student in this semester
-            existing_courses = Performance.objects.filter(
-                student=self.student,
-                semester=self.semester,
-                dataset__is_active=True
-            ).exclude(
-                course=self.course  # Don't count if updating same course
-            ).values('course').distinct().count()
-            
-            if existing_courses >= 8:
-                raise ValidationError(
-                    f'Student {self.student.student_id} already has 8 courses in {self.semester}. '
-                    'AUCA policy limits students to 8 courses per semester.'
-                )
-    
     def save(self, *args, **kwargs):
-        """Auto-calculate grade, status, and performance_status based on score"""
-        # Ensure score is set, default to 0 if None
+        """Auto-calculate derived fields"""
         if self.score is None:
             self.score = 0
         
-        # Calculate grade if not provided
         if not self.grade:
             self.grade = self.calculate_grade()
-        
-        # Calculate status if not provided
         if not self.status:
             self.status = self.calculate_status()
-        
-        # Calculate performance status if not provided
         if not self.performance_status:
             self.performance_status = self.calculate_performance_status()
         
-        # Run validation
-        self.full_clean()
+        if self.ml_predicted_pass is not None and not self.risk_level:
+            self.risk_level = self.calculate_risk_level()
         
+        self.full_clean()
         super().save(*args, **kwargs)
     
     def calculate_grade(self):
-        """Calculate letter grade based on score - AUCA Grading Scale"""
+        """Calculate letter grade based on score"""
         score = float(self.score) if self.score else 0
         
         if score >= 95: return 'A+'
@@ -352,7 +449,7 @@ class Performance(models.Model):
         else: return 'F'
     
     def calculate_status(self):
-        """Calculate academic status based on score - AUCA Academic Status Rules"""
+        """Calculate academic status"""
         score = float(self.score) if self.score else 0
         
         if score >= 50: return 'PASS'
@@ -360,7 +457,7 @@ class Performance(models.Model):
         else: return 'FAIL'
     
     def calculate_performance_status(self):
-        """Calculate performance status for additional classification"""
+        """Calculate performance classification"""
         score = float(self.score) if self.score else 0
         
         if score >= 85: return 'Excellent'
@@ -368,54 +465,70 @@ class Performance(models.Model):
         elif score >= 50: return 'Average'
         else: return 'Poor'
     
-    @staticmethod
-    def calculate_weighted_score(mid_semester, final_exam, other_total_normalized):
-        """
-        Calculate final weighted score
-        Formula: 30% mid-semester + 40% final exam + 30% other activities
+    def calculate_risk_level(self):
+        """Calculate risk level based on ML prediction + actual score"""
+        score = float(self.score) if self.score else 0
+        ml_conf = float(self.ml_confidence) if self.ml_confidence else 50
         
-        Args:
-            mid_semester: Mid-semester exam score (0-100)
-            final_exam: Final exam score (0-100)
-            other_total_normalized: Normalized other activities score (0-100)
+        if score < 40 and not self.ml_predicted_pass and ml_conf > 70:
+            return 'CRITICAL'
         
-        Returns:
-            Weighted final score (0-100)
-        """
-        weighted = (
-            float(mid_semester or 0) * 0.30 +
-            float(final_exam or 0) * 0.40 +
-            float(other_total_normalized or 0) * 0.30
-        )
-        return min(max(weighted, 0), 100)  # Clamp to 0-100
+        if score < 50 and not self.ml_predicted_pass:
+            return 'HIGH'
+        
+        if 40 <= score < 55 or ml_conf < 60:
+            return 'MEDIUM'
+        
+        if 55 <= score < 85:
+            return 'LOW'
+        
+        return 'NONE'
+    
+    def get_ml_summary(self):
+        """Get human-readable ML prediction summary"""
+        if self.ml_predicted_pass is None:
+            return "No prediction available"
+        
+        prediction = "PASS" if self.ml_predicted_pass else "FAIL"
+        confidence = f"{self.ml_confidence:.1f}%" if self.ml_confidence else "N/A"
+        
+        return f"{prediction} (Confidence: {confidence})"
+    
+    def get_risk_color(self):
+        """Get color code for risk level (for UI)"""
+        colors = {
+            'CRITICAL': '#DC2626',
+            'HIGH': '#F59E0B',
+            'MEDIUM': '#FCD34D',
+            'LOW': '#10B981',
+            'NONE': '#3B82F6',
+        }
+        return colors.get(self.risk_level, '#6B7280')
+    
+    def get_intervention_message(self):
+        """Get recommended intervention message"""
+        if not self.needs_intervention:
+            return None
+        
+        messages = {
+            'CRITICAL': "URGENT: Immediate academic intervention required",
+            'HIGH': "HIGH PRIORITY: Schedule counseling session",
+            'MEDIUM': "MODERATE: Monitor progress closely",
+            'LOW': "✓ LOW: Encourage continued effort",
+        }
+        return messages.get(self.risk_level, "Review student progress")
 
 
 class UploadHistory(models.Model):
-    """
-    Tracks CSV/Excel file uploads
-    UPDATED: Added more detailed tracking
-    """
-    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='upload_history')
+    """Track file upload history"""
     file_name = models.CharField(max_length=255)
-    file_path = models.FileField(upload_to='uploads/%Y/%m/')
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='upload_history')
     course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, blank=True)
     semester = models.ForeignKey(Semester, on_delete=models.SET_NULL, null=True, blank=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True, blank=True)
-    
-    # Upload statistics
     records_count = models.IntegerField(default=0)
     success_count = models.IntegerField(default=0)
     error_count = models.IntegerField(default=0)
-    skipped_duplicates = models.IntegerField(default=0)
-    skipped_8_course_limit = models.IntegerField(default=0)
-    
-    # Error logging
-    errors_log = models.TextField(blank=True)
-    
-    # Grade distribution (JSON or text)
-    grade_distribution = models.JSONField(null=True, blank=True)
-    status_distribution = models.JSONField(null=True, blank=True)
-    
     uploaded_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -424,21 +537,11 @@ class UploadHistory(models.Model):
         verbose_name_plural = 'Upload Histories'
     
     def __str__(self):
-        dataset_info = f" [{self.dataset.name}]" if self.dataset else ""
-        return f"{self.file_name}{dataset_info} - {self.uploaded_by.username} - {self.uploaded_at.strftime('%Y-%m-%d %H:%M')}"
-    
-    @property
-    def success_rate(self):
-        """Calculate upload success rate"""
-        if self.records_count == 0:
-            return 0
-        return (self.success_count / self.records_count) * 100
+        return f"{self.file_name} - {self.uploaded_at.strftime('%Y-%m-%d %H:%M')}"
 
 
 class Recommendation(models.Model):
-    """
-    Stores automated recommendations for students
-    """
+    """Academic recommendations and interventions"""
     PRIORITY_CHOICES = [
         ('high', 'High'),
         ('medium', 'Medium'),
@@ -451,9 +554,9 @@ class Recommendation(models.Model):
     recommendation_text = models.TextField()
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     is_resolved = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    resolved_at = models.DateTimeField(null=True, blank=True)
     resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_recommendations')
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         ordering = ['-created_at', '-priority']
@@ -462,46 +565,61 @@ class Recommendation(models.Model):
     
     def __str__(self):
         return f"{self.student.student_id} - {self.course.code} - {self.priority}"
+    
+    
+@property
+def gpa(self):
+    """
+    Calculate GPA based on grade
+    Standard 4.0 scale
+    """
+    grade_to_gpa = {
+        'A+': 4.0,
+        'A': 4.0,
+        'A-': 3.7,
+        'B+': 3.3,
+        'B': 3.0,
+        'B-': 2.7,
+        'C+': 2.3,
+        'C': 2.0,
+        'C-': 1.7,
+        'D': 1.0,
+        'F': 0.0,
+    }
+    return grade_to_gpa.get(self.grade, 0.0)
 
 
-class AcademicYear(models.Model):
+# Also, if you don't have this method, add it:
+def calculate_ranking(self):
     """
-    Represents an academic year (optional, for better organization)
+    Calculate student's ranking in their course/semester
+    Returns ranking number (1 = top performer)
     """
-    name = models.CharField(max_length=20, unique=True)  # e.g., "2024-2025"
-    start_year = models.IntegerField()
-    end_year = models.IntegerField()
-    is_active = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
+    from django.db.models import Count
     
-    class Meta:
-        ordering = ['-start_year']
-        verbose_name = 'Academic Year'
-        verbose_name_plural = 'Academic Years'
+    # Get all performances in same course and semester
+    same_course_semester = Performance.objects.filter(
+        course=self.course,
+        semester=self.semester
+    ).order_by('-score')
     
-    def __str__(self):
-        return self.name
+    # Find this student's position
+    rank = 1
+    for perf in same_course_semester:
+        if perf.id == self.id:
+            return rank
+        rank += 1
     
-    def clean(self):
-        """Ensure end_year > start_year"""
-        if self.end_year <= self.start_year:
-            raise ValidationError('End year must be greater than start year.')
+    return None
 
 
-class Teacher(models.Model):
-    """
-    Extended teacher information (optional enhancement)
-    """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='teacher_profile')
-    teacher_id = models.CharField(max_length=20, unique=True)
-    department = models.CharField(max_length=100)
-    specialization = models.CharField(max_length=200, blank=True)
-    office_location = models.CharField(max_length=100, blank=True)
-    phone = models.CharField(max_length=20, blank=True)
+# Override save method to auto-calculate ranking
+def save(self, *args, **kwargs):
+    """Auto-calculate ranking and other derived fields before saving"""
     
-    class Meta:
-        verbose_name = 'Teacher'
-        verbose_name_plural = 'Teachers'
+    # Calculate ranking if not set
+    if not self.ranking:
+        super().save(*args, **kwargs)  # Save first to get ID
+        self.ranking = self.calculate_ranking()
     
-    def __str__(self):
-        return f"{self.user.get_full_name()} ({self.teacher_id})"
+    super().save(*args, **kwargs)
