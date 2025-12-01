@@ -8,7 +8,6 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CustomLoginForm
-from performance.models import UserRole
 
 
 def user_login(request):
