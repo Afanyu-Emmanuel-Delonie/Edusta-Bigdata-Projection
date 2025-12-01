@@ -29,5 +29,10 @@ urlpatterns = [
     path('api/filters/', views.api_filter_options, name='api_filter_options'),
     path('api/kpis/', views.api_kpis, name='api_kpis'),
     path('api/performances/', views.api_performances, name='api_performances'),
+
+    # Updated this line: name should match your template
+    path('reports/', views.reports_and_recommendations, name='reports_recommendations'),
+    path('debug-charts/', views.debug_charts, name='debug_charts'),
+]
     path('reset-data/', views.reset_all_data, name='reset_data'),
 ]
