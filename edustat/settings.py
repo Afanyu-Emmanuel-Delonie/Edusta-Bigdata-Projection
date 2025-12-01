@@ -137,5 +137,6 @@ LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 ALLOWED_HOSTS = ['*']
 
+fix-allowed-hosts
 
 
