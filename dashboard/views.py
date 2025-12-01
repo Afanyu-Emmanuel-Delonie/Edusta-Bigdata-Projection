@@ -12,7 +12,7 @@ from decimal import Decimal
 
 from performance.models import (
     Performance, Student, Course, Semester, Group, 
-    Recommendation, UserRole
+    Recommendation
 )
 from performance.charts import ChartGenerator
 

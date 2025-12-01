@@ -1,5 +1,5 @@
-{% extends 'base.html' %} {% load static %} {% block title %}Upload Data
-set{%endblock %} {% block content %}
+{% extends 'base.html' %} {% load static %} {% block title %}Upload
+Dataset{%endblock %} {% block content %}
 <div
   class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8"
 >
@@ -124,10 +124,10 @@ set{%endblock %} {% block content %}
         class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
       >
         <!-- Warning Banner -->
-        <div class="px-6 py-4">
+        <div class="bg-yellow-50 border-b border-yellow-200 px-6 py-4">
           <div class="flex items-start">
             <svg
-              class="w-6 h-6 text-white mt-0.5 mr-3 flex-shrink-0"
+              class="w-6 h-6 text-yellow-600 mt-0.5 mr-3 flex-shrink-0"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -138,10 +138,10 @@ set{%endblock %} {% block content %}
               />
             </svg>
             <div>
-              <h3 class="text-base font-bold text-[#1B3058] mb-1">
+              <h3 class="text-base font-bold text-yellow-800 mb-1">
                 ⚠️ Data Override Warning
               </h3>
-              <p class="text-sm text-[#1B3058]">
+              <p class="text-sm text-yellow-700">
                 Uploading new data will <strong>permanently delete</strong> all
                 existing records. This action cannot be undone.
               </p>
@@ -189,14 +189,7 @@ set{%endblock %} {% block content %}
                   >
                     Dataset Name <span class="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    name="dataset_name"
-                    id="id_dataset_name"
-                    required
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                    placeholder="e.g., Fall 2024 Final Exams"
-                  />
+                  {{ form.dataset_name }}
                 </div>
 
                 <!-- Semester -->
@@ -219,13 +212,7 @@ set{%endblock %} {% block content %}
                 >
                   Description <span class="text-gray-400">(Optional)</span>
                 </label>
-                <textarea
-                  name="dataset_description"
-                  id="id_dataset_description"
-                  rows="3"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                  placeholder="Add notes about this dataset..."
-                ></textarea>
+                {{ form.dataset_description }}
               </div>
 
               <!-- Course (Optional) -->
@@ -269,14 +256,7 @@ set{%endblock %} {% block content %}
                 id="dropzone"
                 class="relative border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-all cursor-pointer bg-gray-50 hover:bg-blue-50"
               >
-                <input
-                  id="id_file"
-                  name="file"
-                  type="file"
-                  accept=".csv,.xlsx,.xls"
-                  class="hidden"
-                  required
-                />
+                {{ form.file }}
 
                 <div id="upload-placeholder">
                   <svg
@@ -301,7 +281,7 @@ set{%endblock %} {% block content %}
                   <button
                     type="button"
                     onclick="document.getElementById('id_file').click()"
-                    class="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 transition"
                   >
                     Choose File
                   </button>
@@ -427,8 +407,7 @@ set{%endblock %} {% block content %}
                 >
                   <span class="font-semibold text-red-600"
                     >I understand and confirm:</span
-                  >
-                  <br />
+                  ><br />
                   Uploading this file will
                   <strong
                     >permanently delete all {{ current_records }} existing
@@ -440,9 +419,7 @@ set{%endblock %} {% block content %}
             </div>
 
             <!-- Action Buttons -->
-            <div
-              class="flex flex-col sm:flex-row justify-end gap-3 space-y-3 sm:space-y-0 sm:space-x-4 pt-6"
-            >
+            <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6">
               <a
                 href="{% url 'performance:dashboard' %}"
                 class="px-6 py-3 border-2 border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition text-center"
@@ -452,7 +429,7 @@ set{%endblock %} {% block content %}
               <button
                 type="submit"
                 id="submitBtn"
-                class="px-6 py-3 bg-red-500 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                class="px-6 py-3 bg-red-500 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span class="flex items-center justify-center">
                   <svg
@@ -529,7 +506,6 @@ set{%endblock %} {% block content %}
 </div>
 
 <script>
-  // File input handling
   const fileInput = document.getElementById("id_file");
   const dropzone = document.getElementById("dropzone");
   const uploadPlaceholder = document.getElementById("upload-placeholder");
@@ -538,14 +514,12 @@ set{%endblock %} {% block content %}
   const form = document.getElementById("uploadForm");
   const loadingModal = document.getElementById("loadingModal");
 
-  // Click to upload
   dropzone.addEventListener("click", function (e) {
     if (e.target.type !== "file" && e.target.type !== "button") {
       fileInput.click();
     }
   });
 
-  // File selection
   fileInput.addEventListener("change", function (e) {
     if (e.target.files[0]) {
       fileName.textContent = e.target.files[0].name;
@@ -556,7 +530,6 @@ set{%endblock %} {% block content %}
     }
   });
 
-  // Clear file
   function clearFile() {
     fileInput.value = "";
     uploadPlaceholder.classList.remove("hidden");
@@ -565,7 +538,6 @@ set{%endblock %} {% block content %}
     dropzone.classList.add("border-gray-300", "bg-gray-50");
   }
 
-  // Drag and drop
   dropzone.addEventListener("dragover", function (e) {
     e.preventDefault();
     dropzone.classList.add("border-blue-500", "bg-blue-100");
@@ -579,7 +551,6 @@ set{%endblock %} {% block content %}
   dropzone.addEventListener("drop", function (e) {
     e.preventDefault();
     dropzone.classList.remove("border-blue-500", "bg-blue-100");
-
     if (e.dataTransfer.files.length) {
       fileInput.files = e.dataTransfer.files;
       fileName.textContent = e.dataTransfer.files[0].name;
@@ -589,12 +560,10 @@ set{%endblock %} {% block content %}
     }
   });
 
-  // Form submission
   form.addEventListener("submit", function (e) {
     loadingModal.classList.remove("hidden");
   });
 
-  // Download template
   function downloadTemplate() {
     const csv =
       "student_id,first_name,last_name,course_code,score\n20001,John,Doe,CS101,85\n20002,Jane,Smith,CS101,92\n20003,Bob,Johnson,MATH201,78";
@@ -605,36 +574,5 @@ set{%endblock %} {% block content %}
     a.download = "student_performance_template.csv";
     a.click();
   }
-
-  // Style the form selects
-  document.addEventListener("DOMContentLoaded", function () {
-    const selects = document.querySelectorAll("select");
-    selects.forEach((select) => {
-      select.classList.add(
-        "w-full",
-        "px-4",
-        "py-3",
-        "border",
-        "border-gray-300",
-        "rounded-lg",
-        "focus:ring-2",
-        "focus:ring-blue-500",
-        "focus:border-transparent",
-        "transition",
-        "bg-white"
-      );
-    });
-  });
 </script>
-
-<style>
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  .animate-spin {
-    animation: spin 1s linear infinite;
-  }
-</style>
 {% endblock %}
