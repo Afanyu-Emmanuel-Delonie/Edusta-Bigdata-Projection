@@ -70,8 +70,7 @@ Used as a comparison model
 
 Helps validate Random Forest performance
 
-
-* Both models generate classification metrics including:
+Both models generate classification metrics including:
 
 - Accuracy
 - Precision
