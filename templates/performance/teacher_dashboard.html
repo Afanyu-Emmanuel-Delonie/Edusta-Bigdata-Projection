@@ -16,10 +16,10 @@ Performance Analysis{% endblock %} {% block content %}
           </p>
         </div>
         <div class="mt-4 md:mt-0 grid grid-cols-1 md:grid-cols-3 space-x-3">
-          <!-- Reports Button -->
-          <a
-            href="{% url 'performance:reports_recommendations' %}"
-            class="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 transition inline-flex items-center shadow-lg"
+          <!-- Reset Dataset Button -->
+          <button
+            onclick="handleResetClick()"
+            class="bg-yellow-500 text-white px-6 py-3 rounded-lg hover:bg-yellow-600 transition inline-flex items-center shadow-lg"
           >
             <svg
               class="w-5 h-5 mr-2"
@@ -31,11 +31,78 @@ Performance Analysis{% endblock %} {% block content %}
                 stroke-linecap="round"
                 stroke-linejoin="round"
                 stroke-width="2"
-                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
               ></path>
             </svg>
-            Reports & Insights
-          </a>
+            Reset Dataset
+          </button>
+
+          <!-- JavaScript for Popup Confirmation -->
+          <script>
+            function handleResetClick() {
+              // First confirmation
+              const firstConfirm = confirm(
+                "⚠️ WARNING ⚠️\n\n" +
+                  "This will permanently delete ALL data:\n\n" +
+                  "• All student records\n" +
+                  "• All course data\n" +
+                  "• All performance records\n" +
+                  "• All recommendations\n\n" +
+                  "This action CANNOT be undone!\n\n" +
+                  "Do you want to continue?"
+              );
+
+              if (!firstConfirm) {
+                return;
+              }
+
+              // Second confirmation
+              const secondConfirm = confirm(
+                "🚨 FINAL CONFIRMATION 🚨\n\n" +
+                  "Are you absolutely sure?\n\n" +
+                  "Click OK to DELETE ALL DATA permanently."
+              );
+
+              if (!secondConfirm) {
+                return;
+              }
+
+              // Proceed with reset
+              resetData();
+            }
+
+            function resetData() {
+              // Get CSRF token
+              const csrftoken = document.querySelector(
+                "[name=csrfmiddlewaretoken]"
+              ).value;
+
+              // Send reset request
+              fetch('{% url "performance:reset_data" %}', {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRFToken": csrftoken,
+                },
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.success) {
+                    alert(
+                      "✅ Success!\n\nAll data has been reset successfully!"
+                    );
+                    window.location.reload();
+                  } else {
+                    alert(
+                      "❌ Error\n\n" + (data.message || "Failed to reset data.")
+                    );
+                  }
+                })
+                .catch((error) => {
+                  alert("❌ Error\n\n" + error.message);
+                });
+            }
+          </script>
 
           <!-- Upload Data Button -->
           <a
@@ -352,6 +419,7 @@ Performance Analysis{% endblock %} {% block content %}
     </div>
 
     <!-- Student Performance Table -->
+
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
       <h3 class="text-lg font-bold text-gray-900 mb-4">
         Student Performance Records
@@ -379,11 +447,6 @@ Performance Analysis{% endblock %} {% block content %}
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Semester
-              </th>
-              <th
-                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              >
                 Score
               </th>
               <th
@@ -399,7 +462,17 @@ Performance Analysis{% endblock %} {% block content %}
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
               >
-                Rank
+                Overall GPA
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                ML Prediction
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Risk
               </th>
               <th
                 class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -411,40 +484,118 @@ Performance Analysis{% endblock %} {% block content %}
           <tbody class="bg-white divide-y divide-gray-200">
             {% for perf in performances %}
             <tr class="hover:bg-gray-50">
+              <!-- Student ID -->
               <td
                 class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"
               >
                 {{ perf.student.student_id }}
               </td>
+
+              <!-- Name -->
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {{ perf.student.get_full_name }}
               </td>
+
+              <!-- Course -->
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ perf.course.code }}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ perf.semester.name }}
-              </td>
+
+              <!-- Score -->
               <td
-                class="px-6 py-4 whitespace-nowrap text-sm font-semibold {% if perf.score >= 85 %}text-green-600{% elif perf.score >= 70 %}text-blue-600{% elif perf.score >= 50 %}text-yellow-600{% else %}text-red-600{% endif %}"
+                class="px-6 py-4 whitespace-nowrap text-sm font-semibold {% if perf.score >= 85 %}text-green-600 {% elif perf.score >= 70 %}text-blue-600 {% elif perf.score >= 50 %}text-yellow-600 {% else %}text-red-600{% endif %}"
               >
                 {{ perf.score }}
               </td>
-              <td
-                class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium"
-              >
-                {{ perf.grade }}
+
+              <!-- Grade -->
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <div class="font-medium text-gray-900">{{ perf.grade }}</div>
               </td>
+
+              <!-- Status -->
               <td class="px-6 py-4 whitespace-nowrap">
                 <span
-                  class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if perf.performance_status == 'Excellent' %}bg-green-100 text-green-800{% elif perf.performance_status == 'Good' %}bg-blue-100 text-blue-800{% elif perf.performance_status == 'Average' %}bg-yellow-100 text-yellow-800{% else %}bg-red-100 text-red-800{% endif %}"
+                  class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if perf.performance_status == 'Excellent' %}bg-green-100 text-green-800 {% elif perf.performance_status == 'Good' %}bg-blue-100 text-blue-800 {% elif perf.performance_status == 'Average' %}bg-yellow-100 text-yellow-800 {% else %}bg-red-100 text-red-800{% endif %}"
                 >
                   {{ perf.performance_status }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ perf.ranking|default:"-" }}
+
+              <!-- Overall GPA (Replaced Rank) -->
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                {% if perf.student_gpa %}
+                <div class="flex items-center">
+                  <span
+                    class="font-bold text-lg {% if perf.student_gpa >= 3.5 %}text-green-600 {% elif perf.student_gpa >= 3.0 %}text-blue-600 {% elif perf.student_gpa >= 2.5 %}text-yellow-600 {% else %}text-red-600{% endif %}"
+                  >
+                    {{ perf.student_gpa }}
+                  </span>
+                  <span class="text-xs text-gray-500 ml-1">/4.0</span>
+                </div>
+                {% else %}
+                <span class="text-gray-400">-</span>
+                {% endif %}
               </td>
+
+              <!-- ML Prediction -->
+              <td class="px-6 py-4 whitespace-nowrap">
+                {% if perf.ml_predicted_pass is not None %}
+                <div class="flex items-center">
+                  {% if perf.ml_predicted_pass %}
+                  <svg
+                    class="w-5 h-5 text-green-500 mr-1"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="text-xs text-green-700 font-medium">Pass</span>
+                  {% else %}
+                  <svg
+                    class="w-5 h-5 text-red-500 mr-1"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                  <span class="text-xs text-red-700 font-medium">Fail</span>
+                  {% endif %}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                  {{ perf.ml_confidence }}% conf
+                </div>
+                {% else %}
+                <span class="text-xs text-gray-400">No prediction</span>
+                {% endif %}
+              </td>
+
+              <!-- Risk Level -->
+              <td class="px-6 py-4 whitespace-nowrap">
+                {% if perf.risk_level %}
+                <span
+                  class="px-2 py-1 text-xs font-bold rounded {% if perf.risk_level == 'CRITICAL' %}bg-red-600 text-white {% elif perf.risk_level == 'HIGH' %}bg-orange-500 text-white {% elif perf.risk_level == 'MEDIUM' %}bg-yellow-400 text-gray-900 {% elif perf.risk_level == 'LOW' %}bg-blue-400 text-white {% else %}bg-green-400 text-white{% endif %}"
+                >
+                  {{ perf.risk_level }}
+                </span>
+                {% if perf.needs_intervention %}
+                <div class="text-xs text-red-600 mt-1 font-medium">
+                  Need Help
+                </div>
+                {% endif %} {% else %}
+                <span class="text-xs text-gray-400">-</span>
+                {% endif %}
+              </td>
+
+              <!-- Action -->
               <td class="px-6 py-4 whitespace-nowrap text-sm">
                 <a
                   href="{% url 'performance:student_detail' perf.student.student_id %}"
@@ -456,7 +607,7 @@ Performance Analysis{% endblock %} {% block content %}
             </tr>
             {% empty %}
             <tr>
-              <td colspan="9" class="px-6 py-8 text-center text-gray-500">
+              <td colspan="10" class="px-6 py-8 text-center text-gray-500">
                 No performance data available. Upload CSV to get started.
               </td>
             </tr>
@@ -497,124 +648,118 @@ Performance Analysis{% endblock %} {% block content %}
       </div>
       {% endif %}
     </div>
-
-    <!-- Recommendations Section -->
-    {% if recommendations %}
-    <div class="bg-white rounded-xl shadow-lg p-6">
-      <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
-        <svg
-          class="w-5 h-5 mr-2 text-yellow-500"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          ></path>
-        </svg>
-        Recommendations & Alerts
-      </h3>
-
-      <div class="space-y-3">
-        {% for rec in recommendations %}
-        <div
-          class="border-l-4 {% if rec.priority == 'high' %}border-red-500 bg-red-50{% elif rec.priority == 'medium' %}border-yellow-500 bg-yellow-50{% else %}border-blue-500 bg-blue-50{% endif %} p-4 rounded"
-        >
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <div class="flex items-center mb-2">
-                <span
-                  class="px-2 py-1 text-xs font-bold uppercase rounded {% if rec.priority == 'high' %}bg-red-500 text-white{% elif rec.priority == 'medium' %}bg-yellow-500 text-white{% else %}bg-blue-500 text-white{% endif %}"
-                >
-                  {{ rec.priority }}
-                </span>
-                <span class="ml-2 text-xs text-gray-600"
-                  >{{ rec.course.code }} - {{ rec.semester.name }}</span
-                >
-              </div>
-              <p class="text-sm text-gray-800">{{ rec.recommendation_text }}</p>
-            </div>
-
-            <a
-              href="{% url 'performance:resolve_recommendation' rec.id %}"
-              class="ml-4 text-green-600 hover:text-green-800 text-sm font-medium whitespace-nowrap"
-            >
-              Mark Resolved
-            </a>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
   </div>
 </div>
 
-{% endblock %} {% block extra_js %}
-<!-- Chart.js CDN -->
+{% endblock %}{% block extra_js %}
+<!-- Chart.js CDN - Latest Version -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
 <script>
-  console.log('=== Chart Script Loading ===');
+  console.log('=== Dashboard Charts Initializing ===');
 
   // Check if Chart.js loaded
   if (typeof Chart === 'undefined') {
       console.error('❌ Chart.js failed to load!');
-      alert('Chart.js library failed to load. Please refresh the page.');
+      alert('Chart.js library failed to load. Please check your internet connection.');
   } else {
-      console.log('✅ Chart.js loaded successfully');
+      console.log('✅ Chart.js v' + Chart.version + ' loaded');
   }
 
-  // Parse chart data from Django template
-  const chartData = {
-      distribution: {{ charts.distribution|safe }},
-      statusPie: {{ charts.status_pie|safe }},
-      courseComparison: {{ charts.course_comparison|safe }},
-      gradeDistribution: {{ charts.grade_distribution|safe }},
-      topBottom: {{ charts.top_bottom|safe }}
-  };
-
-  console.log('Chart data loaded:', Object.keys(chartData));
-
-  // Function to create a chart
-  function createChart(canvasId, config) {
-      try {
-          const canvas = document.getElementById(canvasId);
-
-          if (!canvas) {
-              console.error(`❌ Canvas ${canvasId} not found`);
-              return;
-          }
-
-          if (!config) {
-              console.error(`❌ No config for ${canvasId}`);
-              return;
-          }
-
-          // Create the chart
-          new Chart(canvas, config);
-          console.log(`✅ Chart ${canvasId} created successfully`);
-
-      } catch (error) {
-          console.error(`❌ Error creating chart ${canvasId}:`, error);
-      }
-  }
-
-  // Initialize all charts when DOM is ready
+  // Initialize charts when DOM is ready
   document.addEventListener('DOMContentLoaded', function() {
-      console.log('=== Initializing Charts ===');
+      console.log('🎨 Creating dashboard charts...');
+
+      // Chart data from Django
+      const chartConfigs = {
+          'canvas-distribution': {{ charts.distribution|safe }},
+          'canvas-status-pie': {{ charts.status_pie|safe }},
+          'canvas-course-comparison': {{ charts.course_comparison|safe }},
+          'canvas-grade-distribution': {{ charts.grade_distribution|safe }},
+          'canvas-top-bottom': {{ charts.top_bottom|safe }}
+      };
+
+      // Debug: Log all configs
+      console.log('📊 Chart Configurations:', chartConfigs);
 
       // Create each chart
-      createChart('canvas-distribution', chartData.distribution);
-      createChart('canvas-status-pie', chartData.statusPie);
-      createChart('canvas-course-comparison', chartData.courseComparison);
-      createChart('canvas-grade-distribution', chartData.gradeDistribution);
-      createChart('canvas-top-bottom', chartData.topBottom);
+      Object.entries(chartConfigs).forEach(([canvasId, config]) => {
+          try {
+              const canvas = document.getElementById(canvasId);
 
-      console.log('=== All Charts Initialized ===');
+              // Check if canvas exists
+              if (!canvas) {
+                  console.warn(`⚠️ Canvas "${canvasId}" not found in DOM`);
+                  return;
+              }
+
+              // Check if config is valid
+              if (!config) {
+                  console.warn(`⚠️ No config provided for "${canvasId}"`);
+                  return;
+              }
+
+              if (typeof config !== 'object') {
+                  console.error(`❌ Invalid config type for "${canvasId}":`, typeof config);
+                  return;
+              }
+
+              if (!config.type) {
+                  console.error(`❌ Missing chart type for "${canvasId}". Config:`, config);
+                  return;
+              }
+
+              // Log config before creating chart
+              console.log(`Creating chart "${canvasId}":`, config);
+
+              // Get canvas context
+              const ctx = canvas.getContext('2d');
+
+              // Destroy existing chart if any
+              if (canvas.chart) {
+                  canvas.chart.destroy();
+              }
+
+              // Create new chart
+              const chart = new Chart(ctx, config);
+
+              // Store chart instance on canvas for future reference
+              canvas.chart = chart;
+
+              console.log(`✅ Chart "${canvasId}" created successfully (${config.type})`);
+
+          } catch (error) {
+              console.error(`❌ Error creating chart "${canvasId}":`, error);
+              console.error('Config that caused error:', config);
+          }
+      });
+
+      console.log('✅ Chart initialization complete');
   });
+
+  // Handle filter form auto-submission
+  const filterForm = document.getElementById('dashboard-filter-form');
+  if (filterForm) {
+      const inputs = filterForm.querySelectorAll('select, input');
+      inputs.forEach(input => {
+          input.addEventListener('change', function() {
+              console.log('Filter changed, submitting form...');
+              filterForm.submit();
+          });
+      });
+  }
 </script>
+
+<style>
+  /* Ensure canvases are responsive */
+  canvas {
+    max-width: 100%;
+    height: auto !important;
+  }
+
+  /* Fix for canvas containers */
+  canvas[id^="canvas-"] {
+    display: block;
+  }
+</style>
 {% endblock %}

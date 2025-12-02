@@ -71,9 +71,7 @@
 
     {% else %}
     <!-- Student Profile Header -->
-    <div
-      class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-xl shadow-lg p-8 mb-8 text-white"
-    >
+    <div class="bg-blue-500 rounded-xl shadow-lg p-8 mb-8 text-white">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between">
         <div class="flex items-center space-x-6">
           <!-- Avatar -->
@@ -121,8 +119,8 @@
                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
                   ></path>
                 </svg>
-                <strong>Department:</strong>&nbsp;{{
-                student.department|default:"N/A" }}
+                <strong>Department:</strong
+                >&nbsp;{{student.department|default:"N/A" }}
               </p>
               {% if student.email %}
               <p class="flex items-center">
@@ -151,13 +149,13 @@
           class="mt-6 md:mt-0 bg-white bg-opacity-20 rounded-lg p-6 backdrop-blur-sm"
         >
           <div class="text-center">
-            <p class="text-sm font-medium text-blue-100 mb-1">
+            <p class="text-sm font-medium text-yellow-500 mb-1">
               Overall Average
             </p>
-            <p class="text-4xl font-bold">
+            <p class="text-4xl text-blue-500 font-bold">
               {{ student_stats.overall_average }}%
             </p>
-            <p class="text-sm text-blue-100 mt-2">
+            <p class="text-sm text-blue-500 mt-2">
               {{ student_stats.total_courses }} Courses Taken
             </p>
           </div>
@@ -165,8 +163,11 @@
       </div>
     </div>
 
-    <!-- Key Performance Indicators -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Add this to your student_detail.html template -->
+    <!-- Insert this in the Key Performance Indicators section, after the existing 4 cards -->
+
+    <!-- Key Performance Indicators (UPDATE TO 6 COLUMNS) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
       <!-- Overall Average -->
       <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
         <div class="flex items-center justify-between mb-2">
@@ -191,6 +192,44 @@
           {{ student_stats.overall_average }}%
         </p>
         <p class="text-xs text-gray-500 mt-1">Across all courses</p>
+      </div>
+
+      <!-- Cumulative GPA -->
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-indigo-500"
+      >
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Cumulative GPA
+          </h3>
+          <svg
+            class="w-8 h-8 text-indigo-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+            ></path>
+          </svg>
+        </div>
+        <div class="flex items-baseline">
+          <p class="text-3xl font-bold text-gray-900">
+            {{ student_stats.cumulative_gpa }}
+          </p>
+          <p class="text-sm text-gray-500 ml-2">/4.0</p>
+        </div>
+        <div class="mt-2">
+          <span
+            class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if student_stats.gpa_status.color == 'green' %}bg-green-100 text-green-800 {% elif student_stats.gpa_status.color == 'blue' %}bg-blue-100 text-blue-800 {% elif student_stats.gpa_status.color == 'teal' %}bg-teal-100 text-teal-800 {% elif student_stats.gpa_status.color == 'yellow' %}bg-yellow-100 text-yellow-800 {% elif student_stats.gpa_status.color == 'orange' %}bg-orange-100 text-orange-800 {% else %}bg-red-100 text-red-800{% endif %}"
+          >
+            {{ student_stats.gpa_status.icon }}
+            {{student_stats.gpa_status.status }}
+          </span>
+        </div>
       </div>
 
       <!-- Semester Average -->
@@ -218,7 +257,9 @@
         <p class="text-3xl font-bold text-gray-900">
           {{ student_stats.current_semester_avg }}%
         </p>
-        <p class="text-xs text-gray-500 mt-1">Latest semester performance</p>
+        <p class="text-xs text-gray-500 mt-1">
+          GPA: {{ student_stats.gpa }}/4.0
+        </p>
       </div>
 
       <!-- Overall Rank -->
@@ -280,6 +321,86 @@
           {{ student_stats.best_course }}
         </p>
       </div>
+
+      <!-- Total Credits -->
+      <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-pink-500">
+        <div class="flex items-center justify-between mb-2">
+          <h3 class="text-sm font-semibold text-gray-600 uppercase">
+            Total Credits
+          </h3>
+          <svg
+            class="w-8 h-8 text-pink-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+            ></path>
+          </svg>
+        </div>
+        <p class="text-3xl font-bold text-gray-900">
+          {{ student_stats.total_credits }}
+        </p>
+        <p class="text-xs text-gray-500 mt-1">
+          Quality Points: {{ student_stats.quality_points }}
+        </p>
+      </div>
+    </div>
+
+    <!-- UPDATE Semester Performance Breakdown to show GPA -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      {% for sem_stat in semester_stats %}
+      <div
+        class="bg-white rounded-xl shadow-lg p-6 border-t-4 {% if sem_stat.semester_type == '1' %}border-blue-500{% elif sem_stat.semester_type == '2' %}border-green-500{% else %}border-yellow-500{% endif %}"
+      >
+        <h3 class="text-lg font-bold text-gray-900 mb-4">
+          {{ sem_stat.semester_name }}
+        </h3>
+
+        <div class="space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Average Score</span>
+            <span class="text-xl font-bold text-gray-900"
+              >{{ sem_stat.average }}%</span
+            >
+          </div>
+
+          <!-- ADD GPA Display -->
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Semester GPA</span>
+            <span class="text-xl font-bold text-indigo-600"
+              >{{ sem_stat.gpa }}/4.0</span
+            >
+          </div>
+
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Semester Rank</span>
+            <span class="text-lg font-semibold text-gray-900"
+              >#{{ sem_stat.rank }}</span
+            >
+          </div>
+
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-gray-600">Courses</span>
+            <span class="text-lg font-semibold text-gray-900"
+              >{{ sem_stat.course_count }}</span
+            >
+          </div>
+
+          <div class="pt-3 border-t border-gray-200">
+            <span
+              class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {% if sem_stat.status == 'Excellent' %}bg-green-100 text-green-800 {% elif sem_stat.status == 'Good' %}bg-blue-100 text-blue-800 {% elif sem_stat.status == 'Average' %}bg-yellow-100 text-yellow-800 {% else %}bg-red-100 text-red-800{% endif %}"
+            >
+              {{ sem_stat.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
     </div>
 
     <!-- Semester Performance Breakdown -->
@@ -476,7 +597,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ perf.ranking|default:"N/A" }}
+                {{student_stats.overall_rank|default:"N/A" }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {{ perf.class_average|default:"N/A" }}%
@@ -496,64 +617,201 @@
     {% endif %}
   </div>
 </div>
-{% endblock %} {% block extra_js %}
+{% endblock %}{% block extra_js %}
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 
 <script>
   {% if not no_data %}
-  // Parse chart data
-  const chartData = {
-    coursePerformance: {{ charts.course_performance|safe }},
-    progressOverTime: {{ charts.progress_over_time|safe }},
-    gradeDistribution: {{ charts.grade_distribution|safe }}
-  };
+  console.log('=== Student Profile Charts Initializing ===');
 
-  // Create charts
+  // Check Chart.js loaded
+  if (typeof Chart === 'undefined') {
+      console.error('❌ Chart.js failed to load!');
+      alert('Chart.js library failed to load. Please check your internet connection.');
+  } else {
+      console.log('✅ Chart.js v' + Chart.version + ' loaded successfully');
+  }
+
+  // Parse chart data from JSON string
+  let chartData;
+  try {
+      chartData = JSON.parse('{{ charts_json|escapejs }}');
+      console.log('✅ Chart data parsed successfully');
+      console.log('📊 Chart Data:', chartData);
+  } catch (error) {
+      console.error('❌ Failed to parse chart data:', error);
+      alert('Failed to load chart data. Please refresh the page.');
+      chartData = {};
+  }
+
+  // Initialize charts when DOM is ready
   document.addEventListener('DOMContentLoaded', function() {
-    // Course Performance Chart
-    if (document.getElementById('canvas-course-performance') && chartData.coursePerformance) {
-      new Chart(document.getElementById('canvas-course-performance'), chartData.coursePerformance);
-    }
+      console.log('🎨 Creating charts...');
 
-    // Progress Over Time Chart
-    if (document.getElementById('canvas-progress') && chartData.progressOverTime) {
-      new Chart(document.getElementById('canvas-progress'), chartData.progressOverTime);
-    }
+      let chartsCreated = 0;
+      let chartsFailed = 0;
 
-    // Grade Distribution Chart
-    if (document.getElementById('canvas-grade-dist') && chartData.gradeDistribution) {
-      new Chart(document.getElementById('canvas-grade-dist'), chartData.gradeDistribution);
-    }
+      // Course Performance Chart
+      try {
+          const canvas1 = document.getElementById('canvas-course-performance');
+          if (canvas1 && chartData.course_performance) {
+              console.log('Creating Course Performance chart...');
+
+              // Validate the config
+              if (!chartData.course_performance.type) {
+                  throw new Error('Missing chart type');
+              }
+              if (!chartData.course_performance.data) {
+                  throw new Error('Missing chart data');
+              }
+
+              const ctx1 = canvas1.getContext('2d');
+              const chart1 = new Chart(ctx1, chartData.course_performance);
+              canvas1.chart = chart1;
+              chartsCreated++;
+              console.log('✅ Course Performance chart created');
+          } else {
+              console.warn('⚠️ Course Performance: Canvas or data missing');
+              if (!canvas1) console.warn('  - Canvas not found');
+              if (!chartData.course_performance) console.warn('  - Data not provided');
+              chartsFailed++;
+          }
+      } catch (error) {
+          console.error('❌ Course Performance chart error:', error);
+          console.error('Config:', chartData.course_performance);
+          chartsFailed++;
+
+          // Show error message in the chart container
+          const container = document.getElementById('canvas-course-performance')?.parentElement;
+          if (container) {
+              container.innerHTML = '<div class="text-center py-8 text-red-600">Error loading chart: ' + error.message + '</div>';
+          }
+      }
+
+      // Progress Over Time Chart
+      try {
+          const canvas2 = document.getElementById('canvas-progress');
+          if (canvas2 && chartData.progress_over_time) {
+              console.log('Creating Progress Over Time chart...');
+
+              if (!chartData.progress_over_time.type) {
+                  throw new Error('Missing chart type');
+              }
+              if (!chartData.progress_over_time.data) {
+                  throw new Error('Missing chart data');
+              }
+
+              const ctx2 = canvas2.getContext('2d');
+              const chart2 = new Chart(ctx2, chartData.progress_over_time);
+              canvas2.chart = chart2;
+              chartsCreated++;
+              console.log('✅ Progress Over Time chart created');
+          } else {
+              console.warn('⚠️ Progress Over Time: Canvas or data missing');
+              chartsFailed++;
+          }
+      } catch (error) {
+          console.error('❌ Progress Over Time chart error:', error);
+          console.error('Config:', chartData.progress_over_time);
+          chartsFailed++;
+
+          const container = document.getElementById('canvas-progress')?.parentElement;
+          if (container) {
+              container.innerHTML = '<div class="text-center py-8 text-red-600">Error loading chart: ' + error.message + '</div>';
+          }
+      }
+
+      // Grade Distribution Chart
+      try {
+          const canvas3 = document.getElementById('canvas-grade-dist');
+          if (canvas3 && chartData.grade_distribution) {
+              console.log('Creating Grade Distribution chart...');
+
+              if (!chartData.grade_distribution.type) {
+                  throw new Error('Missing chart type');
+              }
+              if (!chartData.grade_distribution.data) {
+                  throw new Error('Missing chart data');
+              }
+
+              const ctx3 = canvas3.getContext('2d');
+              const chart3 = new Chart(ctx3, chartData.grade_distribution);
+              canvas3.chart = chart3;
+              chartsCreated++;
+              console.log('✅ Grade Distribution chart created');
+          } else {
+              console.warn('⚠️ Grade Distribution: Canvas or data missing');
+              chartsFailed++;
+          }
+      } catch (error) {
+          console.error('❌ Grade Distribution chart error:', error);
+          console.error('Config:', chartData.grade_distribution);
+          chartsFailed++;
+
+          const container = document.getElementById('canvas-grade-dist')?.parentElement;
+          if (container) {
+              container.innerHTML = '<div class="text-center py-8 text-red-600">Error loading chart: ' + error.message + '</div>';
+          }
+      }
+
+      console.log(`✅ Chart initialization complete: ${chartsCreated} created, ${chartsFailed} failed`);
+
+      if (chartsCreated === 0 && chartsFailed > 0) {
+          alert('Failed to load charts. Please check the browser console for details.');
+      }
   });
 
   // Export table to CSV
   function exportTableToCSV() {
-    const table = document.getElementById('course-table');
-    let csv = [];
+      try {
+          const table = document.getElementById('course-table');
+          if (!table) {
+              alert('Table not found!');
+              return;
+          }
 
-    // Get headers
-    const headers = [];
-    table.querySelectorAll('thead th').forEach(th => headers.push(th.textContent.trim()));
-    csv.push(headers.join(','));
+          let csv = [];
 
-    // Get rows
-    table.querySelectorAll('tbody tr').forEach(tr => {
-      const row = [];
-      tr.querySelectorAll('td').forEach(td => {
-        let text = td.textContent.trim().replace(/,/g, ';');
-        row.push(text);
-      });
-      if (row.length > 0) csv.push(row.join(','));
-    });
+          // Get headers
+          const headers = [];
+          table.querySelectorAll('thead th').forEach(th => {
+              headers.push(th.textContent.trim());
+          });
+          csv.push(headers.join(','));
 
-    // Download
-    const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'student_performance_{{ student.student_id }}.csv';
-    a.click();
+          // Get rows
+          table.querySelectorAll('tbody tr').forEach(tr => {
+              const row = [];
+              tr.querySelectorAll('td').forEach(td => {
+                  let text = td.textContent.trim().replace(/\s+/g, ' ');
+                  // Escape commas
+                  if (text.includes(',')) {
+                      text = '"' + text + '"';
+                  }
+                  row.push(text);
+              });
+              if (row.length > 0 && row[0] !== '') {
+                  csv.push(row.join(','));
+              }
+          });
+
+          // Download
+          const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'student_performance_{{ student.student_id }}.csv';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+
+          console.log('✅ CSV exported successfully');
+      } catch (error) {
+          console.error('❌ CSV export error:', error);
+          alert('Failed to export CSV: ' + error.message);
+      }
   }
   {% endif %}
 </script>
