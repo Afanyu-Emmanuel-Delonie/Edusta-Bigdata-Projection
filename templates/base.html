@@ -1,840 +1,236 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Adventist University of Central Africa - Transforming Lives Through Faith-Based Education"
-    />
-    <meta
-      name="keywords"
-      content="AUCA, University, Rwanda, Education, Christian Education"
-    />
-    <title>
-      {% block title %} AUCA - Adventist University of Central Africa || EDUSTAT
-      PROJECT {%endblock%}
-    </title>
-
-    <!-- Tailwind CSS -->
-    {% load static %}
-    <link href="{% static 'dist/css/style.css' %}" rel="stylesheet" />
-
-    <!-- Font Awesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    />
-
-    <!-- Favicon -->
-    <link
-      rel="icon"
-      type="image/png"
-      href="{% static 'images/favicon.png' %}"
-    />
-
-    <!-- Additional CSS -->
-    {% block extra_css %}{% endblock %}
-
-    <!-- jQuery (if needed for other features) -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    <!-- Main application JavaScript -->
-    <script src="{% static 'js/main.js' %}"></script>
+    <title>{% block title %}EduStat{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'auca-blue': '#003DA5',
+              'auca-red': '#E31837',
+              'auca-light-blue': '#0056D6',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+    </style>
+    {% block extra_head %}{% endblock %}
   </head>
-  <body class="bg-white text-gray-800 font-sans antialiased">
-    {% comment %} Top Contact Bar {% endcomment %}
-    <div class="bg-[#f1f7ff] hidden md:block">
-      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div
-          class="flex flex-col lg:flex-row justify-between items-center py-3 gap-3 lg:gap-4"
-        >
-          <!-- Left side - Quick Links -->
-          <div class="w-full lg:w-auto">
-            <ul
-              class="flex flex-wrap justify-center lg:justify-start items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-700"
-            >
-              <li>
-                <a
-                  href="#"
-                  class="hover:text-yellow-400 transition duration-200 flex items-center gap-1"
-                >
-                  <span>Apply</span>
-                </a>
-              </li>
+  <body class="bg-gray-50">
+    <!-- Mobile Menu Overlay -->
+    <div id="mobileMenuOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
 
-              <li>
-                <a
-                  href="#"
-                  class="hover:text-yellow-400 transition duration-200 flex items-center gap-1"
-                >
-                  <span class="hidden sm:inline">Online </span>Registration
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="hover:text-yellow-400 transition duration-200 flex items-center gap-1"
-                >
-                  <span>e-Library</span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="hover:text-yellow-400 transition duration-200 flex items-center gap-1"
-                >
-                  <span class="hidden sm:inline">News</span>Letter
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Right side - Info -->
-          <div
-            class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-xs sm:text-sm w-full lg:w-auto justify-center lg:justify-end"
-          >
-            <p class="text-gray-700 flex items-center gap-1">
-              <span>January intake 2026 is Open</span>
-            </p>
-            <span class="hidden sm:block text-gray-300">|</span>
-            <a
-              href="tel:+250724796998"
-              class="font-semibold text-grey-600 hover:text-yellow-400 transition flex items-center gap-2"
-            >
-              <span>+250 724 796 998</span>
-            </a>
-          </div>
-        </div>
+    <!-- Sidebar -->
+    <aside id="sidebar" class="fixed left-0 top-0 h-full w-64 bg-white border-r border-gray-200 z-50 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
+      <!-- Logo -->
+      <div class="h-16 md:h-20 flex items-center justify-between px-4 md:px-6 border-b border-gray-200">
+        <a href="/" class="text-xl md:text-2xl font-bold text-auca-blue">EDUSTAT</a>
+        <!-- Close button for mobile -->
+        <button id="closeSidebar" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg">
+          <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
       </div>
-    </div>
 
-    <!-- Secondary Navigation bar -->
-
-    <div
-      class="hidden md:block bg-white px-2 py-5 border-b border-yellow-400 border-b-6"
-    >
-      <div
-        class="flex items-center justify-between container mx-auto px-4 sm:px-6 lg:px-8"
-      >
-        <!-- Logo -->
-        <div class="flex items-center">
-          <a
-            href="{% url 'home:home' %}"
-            class="flex items-center hover:opacity-90 transition"
-          >
-            <img
-              src="{% static 'images/auca-logo.png' %}"
-              alt="AUCA Logo"
-              class="h-12 sm:h-16 md:h-20 w-auto object-contain"
-            />
-          </a>
-        </div>
-
-        <!-- right side - Quick Links -->
-        <div class="w-full lg:w-auto">
-          <ul
-            class="flex flex-wrap justify-center lg:justify-start items-center gap-3 sm:gap-4 text-xs sm:text-sm text-gray-700"
-          >
+      <!-- Navigation - Scrollable on mobile -->
+      <nav class="px-3 md:px-4 py-4 md:py-6 overflow-y-auto h-[calc(100vh-64px)] md:h-[calc(100vh-80px)]">
+        <div class="mb-6">
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">Main</p>
+          <ul class="space-y-1">
             <li>
-              <a
-                href="#"
-                class="hover:text-blue-600 transition duration-200 flex items-center gap-1"
-              >
-                <span>30th Graduation</span>
-              </a>
-            </li>
-
-            <li>
-              <a
-                href="#"
-                class="hover:text-blue-600 transition duration-200 flex items-center gap-1"
-              >
-                <span class="hidden sm:inline">Online </span>Application
+              <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-auca-blue rounded-lg transition-colors group">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 4a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 12a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4zM11 4a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V4zM11 12a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/>
+                </svg>
+                <span class="font-medium text-sm md:text-base">Overview</span>
               </a>
             </li>
             <li>
-              <a
-                href="#"
-                class="hover:text-blue-600 transition duration-200 flex items-center gap-1"
-              >
-                <span>e-Library</span>
+              <a href="{% url 'risk_tracker' %}" class="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-auca-blue rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                </svg>
+                <span class="font-medium text-sm md:text-base">Risk Tracker</span>
               </a>
             </li>
             <li>
-              <a
-                href="#"
-                class="hover:text-blue-600 transition duration-200 flex items-center gap-1"
-              >
-                Edustat Portal
+              <a href="{% url 'graduation' %}" class="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-auca-blue rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
+                </svg>
+                <span class="font-medium text-sm md:text-base">Graduation List</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'insights' %}" class="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-auca-blue rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                </svg>
+                <span class="font-medium text-sm md:text-base">System Insights</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'management' %}" class="flex items-center gap-3 px-3 py-2.5 text-gray-700 hover:bg-blue-50 hover:text-auca-blue rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z"/>
+                  <path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z"/>
+                  <path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z"/>
+                </svg>
+                <span class="font-medium text-sm md:text-base">Data Management</span>
               </a>
             </li>
           </ul>
         </div>
-      </div>
-    </div>
 
-    <!-- Navigation Bar -->
-    <nav class="bg-[#1B3058] shadow-lg sticky top-0 z-50">
-      <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-20">
-          <!-- Desktop Navigation Links -->
-          <div class="hidden lg:flex items-center space-x-6 xl:space-x-8">
-            <a
-              href="{% url 'home:home' %}"
-              class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
-            >
-              <span>Home</span>
-            </a>
-
-            <!-- About Dropdown -->
-            <div class="relative group">
-              <button
-                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
-              >
-                <span>About</span>
-                <svg
-                  class="w-4 h-4 transition-transform group-hover:rotate-180"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              <div
-                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
-              >
-                <a
-                  href="#about-us"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
-                  >About Us</a
-                >
-                <a
-                  href="#mission-vision"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >Mission & Vision</a
-                >
-                <a
-                  href="#leadership"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >Leadership</a
-                >
-                <a
-                  href="#history"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
-                  >History</a
-                >
-              </div>
-            </div>
-
-            <!-- Admissions Dropdown -->
-            <div class="relative group">
-              <button
-                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
-              >
-                <span>Admissions</span>
-                <svg
-                  class="w-4 h-4 transition-transform group-hover:rotate-180"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              <div
-                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
-              >
-                <a
-                  href="#undergraduate"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
-                  >Undergraduate</a
-                >
-                <a
-                  href="#graduate"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >Graduate</a
-                >
-                <a
-                  href="#international"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >International</a
-                >
-                <a
-                  href="#requirements"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
-                  >Requirements</a
-                >
-              </div>
-            </div>
-
-            <!-- Academics Dropdown -->
-            <div class="relative group">
-              <button
-                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
-              >
-                <span>Academics</span>
-                <svg
-                  class="w-4 h-4 transition-transform group-hover:rotate-180"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              <div
-                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
-              >
-                <a
-                  href="#programs"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
-                  >Programs</a
-                >
-                <a
-                  href="#schools"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >Schools & Colleges</a
-                >
-                <a
-                  href="#courses"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >Course Catalog</a
-                >
-                <a
-                  href="#calendar"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
-                  >Academic Calendar</a
-                >
-              </div>
-            </div>
-
-            <!-- Medical Center Dropdown -->
-            <div class="relative group">
-              <button
-                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
-              >
-                <span>Medical Center</span>
-                <svg
-                  class="w-4 h-4 transition-transform group-hover:rotate-180"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              <div
-                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
-              >
-                <a
-                  href="#patient-care"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
-                  >Patient Care</a
-                >
-                <a
-                  href="#services"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >Services</a
-                >
-                <a
-                  href="#facilities"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >Facilities</a
-                >
-                <a
-                  href="#appointments"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
-                  >Appointments</a
-                >
-              </div>
-            </div>
-
-            <!-- Research Dropdown -->
-            <div class="relative group">
-              <button
-                class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
-              >
-                <span>Research</span>
-                <svg
-                  class="w-4 h-4 transition-transform group-hover:rotate-180"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  ></path>
-                </svg>
-              </button>
-              <div
-                class="absolute left-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200"
-              >
-                <a
-                  href="#research-areas"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-t-lg transition"
-                  >Research Areas</a
-                >
-                <a
-                  href="#labs"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >Labs & Centers</a
-                >
-                <a
-                  href="#publications"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
-                  >Publications</a
-                >
-                <a
-                  href="#funding"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-b-lg transition"
-                  >Funding</a
-                >
-              </div>
-            </div>
-
-            {%if user.is_authenticated%}
-            <a
-              href="{% url 'performance:dashboard' %}"
-              class="hover:text-yellow-500 text-sm xl:text-base text-white transition duration-200 font-medium flex items-center gap-1"
-            >
-              <span>Dashboard</span>
-            </a>
-            {%endif%}
-          </div>
-
-          <!-- Auth Button -->
-          <div>
-            {% if user.is_authenticated %}
-            <a
-              href="{% url 'accounts:logout' %}"
-              class="bg-yellow-300 text-sm xl:text-base text-gray-800 px-4 xl:px-6 py-2 rounded-sm hover:bg-yellow-400 transition duration-200 font-semibold flex items-center gap-2"
-            >
-              <span>Logout</span>
-            </a>
-            {% else %}
-            <a
-              href="{% url 'accounts:login' %}"
-              class="bg-yellow-300 text-sm xl:text-base text-gray-800 px-4 xl:px-6 py-2 rounded-sm hover:bg-yellow-400 transition duration-200 font-semibold flex items-center gap-2"
-            >
-              <span>Login</span>
-            </a>
-            {% endif %}
-          </div>
-
-          <!-- Mobile Menu Button -->
-          <button
-            id="mobile-menu-button"
-            class="lg:hidden p-2 rounded-lg hover:bg-blue-900 transition text-white focus:outline-none focus:ring-2 focus:ring-yellow-300"
-            aria-label="Toggle menu"
-          >
-            <svg
-              class="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              ></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Mobile Menu -->
-      <div
-        id="mobile-menu"
-        class="hidden lg:hidden bg-[#1B3058] border-t border-gray-200 shadow-lg"
-      >
-        <div class="px-4 pt-3 pb-4 space-y-2">
-          <a
-            href="{% url 'home:home' %}"
-            class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium flex items-center gap-3"
-          >
-            <span>Home</span>
-          </a>
-
-          <!-- Mobile About Dropdown -->
-          <div class="mobile-dropdown">
-            <button
-              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
-            >
-              <div class="flex items-center gap-3">
-                <span>About</span>
-              </div>
-              <svg
-                class="w-4 h-4 transition-transform"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
+        <!-- Bible Quote Card - Hidden on small mobile -->
+        <div class="hidden sm:block px-3">
+          <div class="bg-gradient-to-br from-auca-blue to-auca-light-blue rounded-xl p-4 md:p-5 text-white shadow-lg">
+            <div class="flex items-start gap-2 mb-3">
+              <svg class="w-5 h-5 text-blue-100 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 2h12v2H6V2zm0 18h12v2H6v-2zM3 6h2v12H3V6zm16 0h2v12h-2V6zm-3 3v6c0 1.1-.9 2-2 2H9c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2h5c1.1 0 2 .9 2 2z"/>
               </svg>
-            </button>
-            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
-              <a
-                href="#about-us"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >About Us</a
-              >
-              <a
-                href="#mission-vision"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Mission & Vision</a
-              >
-              <a
-                href="#leadership"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Leadership</a
-              >
-              <a
-                href="#history"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >History</a
-              >
-            </div>
-          </div>
-
-          <!-- Mobile Admissions Dropdown -->
-          <div class="mobile-dropdown">
-            <button
-              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
-            >
-              <div class="flex items-center gap-3">
-                <span>Admissions</span>
+              <div>
+                <p class="text-xs md:text-sm text-white leading-relaxed italic">
+                  "I can do all things through Christ who strengthens me."
+                </p>
+                <p class="text-xs text-blue-100 mt-2 font-medium">— Philippians 4:13</p>
               </div>
-              <svg
-                class="w-4 h-4 transition-transform"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </button>
-            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
-              <a
-                href="#undergraduate"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Undergraduate</a
-              >
-              <a
-                href="#graduate"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Graduate</a
-              >
-              <a
-                href="#international"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >International</a
-              >
-              <a
-                href="#requirements"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Requirements</a
-              >
             </div>
-          </div>
-
-          <!-- Mobile Academics Dropdown -->
-          <div class="mobile-dropdown">
-            <button
-              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
-            >
-              <div class="flex items-center gap-3">
-                <span>Academics</span>
-              </div>
-              <svg
-                class="w-4 h-4 transition-transform"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </button>
-            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
-              <a
-                href="#programs"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Programs</a
-              >
-              <a
-                href="#schools"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Schools & Colleges</a
-              >
-              <a
-                href="#courses"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Course Catalog</a
-              >
-              <a
-                href="#calendar"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Academic Calendar</a
-              >
-            </div>
-          </div>
-
-          <!-- Mobile Medical Center Dropdown -->
-          <div class="mobile-dropdown">
-            <button
-              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
-            >
-              <div class="flex items-center gap-3">
-                <span>Medical Center</span>
-              </div>
-              <svg
-                class="w-4 h-4 transition-transform"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </button>
-            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
-              <a
-                href="#patient-care"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Patient Care</a
-              >
-              <a
-                href="#services"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Services</a
-              >
-              <a
-                href="#facilities"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Facilities</a
-              >
-              <a
-                href="#appointments"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Appointments</a
-              >
-            </div>
-          </div>
-
-          <!-- Mobile Research Dropdown -->
-          <div class="mobile-dropdown">
-            <button
-              class="w-full flex items-center justify-between px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium mobile-dropdown-toggle"
-            >
-              <div class="flex items-center gap-3">
-                <span>Research</span>
-              </div>
-              <svg
-                class="w-4 h-4 transition-transform"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </button>
-            <div class="mobile-dropdown-content hidden pl-12 pt-2 space-y-1">
-              <a
-                href="#research-areas"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Research Areas</a
-              >
-              <a
-                href="#labs"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Labs & Centers</a
-              >
-              <a
-                href="#publications"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Publications</a
-              >
-              <a
-                href="#funding"
-                class="block px-4 py-2 text-gray-50 hover:bg-gray-100 rounded transition"
-                >Funding</a
-              >
-            </div>
-          </div>
-
-          <div class="pt-2 border-t mt-2">
-            {% if user.is_authenticated %}
-            <a
-              href="{% url 'performance:dashboard' %}"
-              class="block px-4 py-3 rounded-lg hover:bg-gray-100 transition text-white font-medium flex items-center gap-3"
-            >
-              <span>Dashboard</span>
-            </a>
-            <a
-              href="{% url 'accounts:logout' %}"
-              class="block px-4 py-3 w-full bg-yellow-300 text-gray-800 rounded-lg hover:bg-yellow-400 transition font-semibold text-center mt-2 flex items-center justify-center gap-2"
-            >
-              <span>Logout</span>
-            </a>
-            {% else %}
-            <a
-              href="{% url 'accounts:login' %}"
-              class="block px-4 py-3 w-full bg-yellow-300 text-gray-800 rounded-lg hover:bg-yellow-400 transition font-semibold text-center flex items-center justify-center gap-2"
-            >
-              <span>Login</span>
-            </a>
-            {% endif %}
           </div>
         </div>
-      </div>
-    </nav>
-
-    <!-- Messages (Flash Messages) -->
-    {% if messages %}
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 mt-4">
-      {% for message in messages %}
-      <div
-        class="{% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %} px-4 py-3 rounded-lg mb-4 flex items-start space-x-3 shadow-sm"
-        role="alert"
-      >
-        <i
-          class="{% if message.tags == 'error' %}fas fa-exclamation-circle{% elif message.tags == 'success' %}fas fa-check-circle{% elif message.tags == 'warning' %}fas fa-exclamation-triangle{% else %}fas fa-info-circle{% endif %} mt-0.5 flex-shrink-0"
-        ></i>
-        <span class="flex-1">{{ message }}</span>
-        <button
-          onclick="this.parentElement.remove()"
-          class="text-current hover:opacity-70 transition"
-        >
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
+      </nav>
+    </aside>
 
     <!-- Main Content Area -->
-    <main class="mx-auto px-4 sm:px-6 lg:px-8">
-      {% block content %}
-      <!-- Page-specific content goes here -->
-      {% endblock %}
-    </main>
+    <div class="lg:ml-64 min-h-screen">
+      <!-- Top Navigation Bar -->
+      <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div class="h-16 md:h-20 px-4 md:px-6 lg:px-8 flex items-center justify-between">
+          <div class="flex items-center gap-2 md:gap-4">
+            <!-- Mobile Menu Button -->
+            <button id="openSidebar" class="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+            
+            <h1 class="text-lg md:text-2xl font-bold text-gray-900">
+              Hello, {% if user.is_authenticated %}{{ user.first_name|default:user.username }}{% else %}Guest{% endif %}!
+            </h1>
+          </div>
+          
+          <div class="flex items-center gap-2 md:gap-4">
+            <!-- Search Bar - Hidden on mobile, visible on tablet+ -->
+            <div class="hidden md:block relative">
+              <input 
+                type="text" 
+                placeholder="Search anything here..." 
+                class="w-48 lg:w-80 pl-10 pr-4 py-2 md:py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-auca-blue focus:border-transparent text-sm"
+              >
+              <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </div>
 
-    <!-- Footer -->
-    <footer
-      class="bg-[#1B3058] text-white mt-16 border-t border-yellow-500 border-t-6"
-    >
-      <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <!-- Left Column: Contact & Info -->
-          <div class="space-y-4">
-            <h3 class="text-lg font-bold text-yellow-400">Since 1984</h3>
-            <p class="text-gray-300 font-semibold">
-              ADVENTIST UNIVERSITY OF CENTRAL AFRICA
-            </p>
-            <p class="text-gray-300">
-              Masoro Hill, City of Kigali<br />
-              PO Box 2461, Kigali, Rwanda
-            </p>
+            <!-- Search Icon for Mobile -->
+            <button class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg class="w-5 h-5 md:w-6 md:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </button>
 
-            <div class="space-y-2">
-              <p class="text-yellow-400 font-semibold">Admission Inquiries:</p>
-              <p class="text-gray-300">
-                admissions@auca.ac.rw | +250 724 796 998
-              </p>
+            <!-- Notifications -->
+            <button class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <svg class="w-5 h-5 md:w-6 md:h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+              </svg>
+              <span class="absolute top-1 right-1 w-2 h-2 bg-auca-red rounded-full"></span>
+            </button>
 
-              <p class="text-yellow-400 font-semibold">Media Inquiries:</p>
-              <p class="text-gray-300">marketing@auca.ac.rw</p>
-
-              <p class="text-yellow-400 font-semibold">General Inquiries:</p>
-              <p class="text-gray-300">info@auca.ac.rw</p>
+            <!-- User Profile -->
+            <div class="flex items-center gap-2 md:gap-3 pl-2 md:pl-3 border-l border-gray-200">
+              <div class="w-8 h-8 md:w-10 md:h-10 bg-gradient-to-br from-auca-blue to-auca-light-blue rounded-full flex items-center justify-center text-white font-semibold text-sm md:text-base">
+                {% if user.is_authenticated %}
+                {{ user.first_name.0|default:user.username.0|upper }}
+                {% else %}
+                G
+                {% endif %}
+              </div>
             </div>
           </div>
+        </div>
+      </header>
 
-          <!-- Right Column: Map -->
-          <div class="rounded overflow-hidden shadow-lg">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.064272695576!2d30.061053375528603!3d-1.944620436142119!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca32b6d694ff7%3A0x36c9d6cf2f4efb27!2sAdventist%20University%20of%20Central%20Africa%20(AUCA)!5e0!3m2!1sen!2srw!4v1600000000000!5m2!1sen!2srw"
-              width="100%"
-              height="300"
-              style="border: 0"
-              allowfullscreen=""
-              loading="lazy"
-            >
-            </iframe>
+      <!-- Page Content -->
+      <main class="p-4 md:p-6 lg:p-8">
+        {% if messages %}
+          <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <div class="p-3 md:p-4 rounded-lg text-sm md:text-base {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+              {{ message }}
+            </div>
+            {% endfor %}
           </div>
-        </div>
+        {% endif %}
 
-        <!-- Copyright -->
-        <div
-          class="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400"
-        >
-          <p class="flex items-center justify-center gap-2 flex-wrap">
-            <i class="far fa-copyright"></i>
-            <span
-              >2025 Adventist University of Central Africa. All rights
-              reserved.</span
-            >
-          </p>
-        </div>
-      </div>
-    </footer>
+        {% block content %}
+        <!-- Default content or page-specific content goes here -->
+        {% endblock %}
+      </main>
+    </div>
 
-    {% load static %}
+    <!-- JavaScript for mobile menu -->
+    <script>
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('mobileMenuOverlay');
+      const openBtn = document.getElementById('openSidebar');
+      const closeBtn = document.getElementById('closeSidebar');
 
-    <script src="{% static 'js/main.js' %}"></script>
+      function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
 
-    <!-- Additional JavaScript -->
+      function closeSidebar() {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      openBtn.addEventListener('click', openSidebar);
+      closeBtn.addEventListener('click', closeSidebar);
+      overlay.addEventListener('click', closeSidebar);
+
+      // Close sidebar when clicking a link on mobile
+      const sidebarLinks = sidebar.querySelectorAll('a');
+      sidebarLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 1024) {
+            closeSidebar();
+          }
+        });
+      });
+
+      // Handle window resize
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024) {
+          closeSidebar();
+        }
+      });
+    </script>
+
     {% block extra_js %}{% endblock %}
   </body>
 </html>

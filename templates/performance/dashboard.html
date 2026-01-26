@@ -1,0 +1,25 @@
+{% extends "base.html" %} {% block title %}Performance Dashboard -
+EduStat{%endblock %} {% block content %}
+<div class="mb-8">
+  <h1 class="text-3xl font-bold">Performance Dashboard</h1>
+  <p class="text-gray-600 mt-2">
+    Monitor student and teacher performance metrics
+  </p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <!-- Card for average scores -->
+  <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6">
+    <h3 class="text-sm font-semibold text-gray-700 mb-2">Dashboard</h3>
+    <p class="text-3xl font-bold text-blue-600">📊</p>
+    <p class="text-sm text-gray-600 mt-4">Performance analytics and insights</p>
+  </div>
+</div>
+
+<div class="bg-white rounded-lg shadow p-6">
+  <h2 class="text-xl font-bold mb-4">Recent Activity</h2>
+  <p class="text-gray-600">
+    Performance data and analytics will be displayed here.
+  </p>
+</div>
+{% endblock %}

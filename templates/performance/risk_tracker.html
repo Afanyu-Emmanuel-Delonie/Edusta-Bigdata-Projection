@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold" style="color: var(--auca-blue);">Situation A: Predictive Risk Tracker</h4>
+            <p class="text-muted small">AI-driven early intervention list based on current CA and Attendance.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-danger-subtle text-danger p-2 px-3 border border-danger">
+                <i class="fa fa-bolt me-1"></i> {{ alert_count }} Students at High Risk
+            </span>
+        </div>
+    </div>
+
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body p-3">
+            <form class="row g-3 align-items-center">
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">Filter by Course</label>
+                    <select class="form-select form-select-sm border-0 bg-light">
+                        <option>All Courses</option>
+                        <option>CS101 - Intro to Programming</option>
+                        <option>DS201 - Big Data Systems</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">Filter by Teacher</label>
+                    <select class="form-select form-select-sm border-0 bg-light">
+                        <option>All Faculty</option>
+                        <option>T001 - Dr. Kamali</option>
+                        <option>T002 - Prof. Murekezi</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">Risk Level</label>
+                    <select class="form-select form-select-sm border-0 bg-light">
+                        <option>High Risk (>40%)</option>
+                        <option>Moderate Risk</option>
+                        <option>Low Risk</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-sm w-100 text-white" style="background: var(--auca-blue);">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background: #f8faff;">
+                    <tr class="text-muted small">
+                        <th class="ps-4">STUDENT DETAILS</th>
+                        <th>CA SCORE (0-40)</th>
+                        <th>ATTENDANCE</th>
+                        <th>FAIL PROBABILITY</th>
+                        <th class="text-center">INTERVENTION</th>
+                        <th class="pe-4"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alert in alerts %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3 rounded-circle d-flex align-items-center justify-content-center text-white fw-bold" 
+                                     style="width: 35px; height: 35px; background: var(--auca-blue); font-size: 12px;">
+                                    {{ alert.student.first_name|slice:":1" }}{{ alert.student.last_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold mb-0" style="font-size: 14px;">{{ alert.student.first_name }} {{ alert.student.last_name }}</div>
+                                    <div class="text-muted" style="font-size: 12px;">ID: #{{ alert.student.student_id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="fw-bold {% if alert.ca < 20 %}text-danger{% endif %}">{{ alert.ca }}</span>
+                            <small class="text-muted">/ 40</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">
+                                {{ alert.attendance_rate|floatformat:0 }}%
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2 fw-bold {% if alert.risk > 40 %}text-danger{% endif %}" style="width: 45px;">
+                                    {{ alert.risk }}%
+                                </span>
+                                <div class="progress flex-grow-1" style="height: 6px; max-width: 120px;">
+                                    <div class="progress-bar {% if alert.risk > 40 %}bg-danger{% else %}bg-success{% endif %}" 
+                                         role="progressbar" style="width: {{ alert.risk }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            {% if alert.risk > 40 %}
+                                <button class="btn btn-sm btn-warning fw-bold px-3" style="font-size: 11px;">
+                                    <i class="fa fa-envelope me-1"></i> ALERT ADVISOR
+                                </button>
+                            {% else %}
+                                <span class="text-success small fw-bold"><i class="fa fa-check-circle"></i> Monitoring</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4 text-end">
+                            <a href="#" class="text-muted"><i class="fa fa-ellipsis-v"></i></a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

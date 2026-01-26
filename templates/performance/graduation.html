@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold" style="color: var(--auca-blue);">Situation B: Graduation & GPA Analytics</h4>
+            <p class="text-muted small">Finalized academic standing and degree classification for the current cohort.</p>
+        </div>
+        <button class="btn btn-sm shadow-sm" style="background: var(--auca-yellow); color: var(--auca-blue); font-weight: bold;">
+            <i class="fa fa-print me-2"></i> Print Transcripts
+        </button>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-4" style="color: var(--auca-blue);">GPA Distribution (4.0 Scale)</h6>
+                    <div style="height: 300px;">
+                        <canvas id="gpaChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100" style="border-radius: 20px; background: var(--auca-blue);">
+                <div class="card-body p-4 text-white">
+                    <h6 class="fw-bold mb-4">Cohort Classification</h6>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <span>First Class (3.5+)</span>
+                        <span class="badge bg-warning text-dark">12 Students</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <span>Second Upper (3.0+)</span>
+                        <span class="badge bg-light text-dark">45 Students</span>
+                    </div>
+                    <div class="mb-3 d-flex justify-content-between align-items-center">
+                        <span>Pass (2.0+)</span>
+                        <span class="badge bg-light text-dark">28 Students</span>
+                    </div>
+                    <hr class="bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-danger-emphasis">Below 2.0 (Ineligible)</span>
+                        <span class="badge bg-danger">5 Students</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 20px;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background: #f8faff;">
+                    <tr class="text-muted small">
+                        <th class="ps-4">STUDENT NAME</th>
+                        <th>FINAL SCORE (%)</th>
+                        <th>CALCULATED GPA</th>
+                        <th>STANDING</th>
+                        <th class="pe-4 text-center">GRADUATION STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in finalized %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold" style="color: var(--auca-blue);">{{ item.student.first_name }} {{ item.student.last_name }}</div>
+                            <div class="text-muted small">ID: #{{ item.student.student_id }}</div>
+                        </td>
+                        <td>
+                            <div class="fw-bold">{{ item.score }}%</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border p-2 px-3 fs-6">
+                                {{ item.gpa }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if item.gpa >= 3.5 %}
+                                <span class="text-primary fw-bold"><i class="fa fa-award me-1"></i> First Class</span>
+                            {% elif item.gpa >= 3.0 %}
+                                <span class="text-dark fw-bold">Second Class Upper</span>
+                            {% else %}
+                                <span class="text-muted">Pass</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4 text-center">
+                            {% if item.gpa >= 2.0 %}
+                                <span class="badge rounded-pill bg-success-subtle text-success px-3">ELIGIBLE</span>
+                            {% else %}
+                                <span class="badge rounded-pill bg-danger-subtle text-danger px-3">INELIGIBLE</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const gpaCtx = document.getElementById('gpaChart').getContext('2d');
+    new Chart(gpaCtx, {
+        type: 'bar',
+        data: {
+            labels: ['0.0-1.0', '1.0-2.0', '2.0-3.0', '3.0-3.5', '3.5-4.0'],
+            datasets: [{
+                label: 'Number of Students',
+                data: [2, 5, 28, 45, 12],
+                backgroundColor: '#051d40',
+                borderRadius: 8,
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { grid: { display: false } }
+            },
+            maintainAspectRatio: false
+        }
+    });
+</script>
+{% endblock %}
+
+{% block sidebar %}
