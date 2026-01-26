@@ -1,23 +1,14 @@
 from django.urls import path
 from . import views
 
-urlpatterns = [
-    # Page 1: Overview
-    path('', views.analytics_dashboard, name='dashboard'),
-    
-    # Page 2: Risk Tracker (Situation A)
-    path('risk-tracker/', views.risk_tracker, name='risk_tracker'),
-    
-    # Page 3: Graduation (Situation B)
-    path('graduation/', views.graduation_analytics, name='graduation'),
-    
-    # Page 4: Statistics (Insights)
-    path('insights/', views.institutional_insights, name='insights'),
-    
-    # Page 5: Management (Engine)
-    path('management/', views.data_management, name='management'),
+app_name = 'performance'  # Add this line
 
-    # Action URLs
+urlpatterns = [
+    path('', views.analytics_dashboard, name='dashboard'),
+    path('risk-tracker/', views.risk_tracker, name='risk_tracker'),
+    path('graduation/', views.graduation_analytics, name='graduation'),
+    path('insights/', views.institutional_insights, name='insights'),
+    path('management/', views.data_management, name='management'),
     path('bulk-upload/', views.upload_semester_data, name='bulk_upload'),
-    path('submit-record/', views.RecordCreateView.as_view(), name='submit_record'),
+    path('submit-record/', views.submit_record, name='submit_record'),
 ]

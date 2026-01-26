@@ -41,20 +41,25 @@ class Student(models.Model):
 
 class AcademicRecord(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    course_code = models.CharField(max_length=20)   # Check if this matches form
-    ca_score = models.FloatField()
-    attendance_rate = models.FloatField()          # Check if this matches form
-    final_score = models.FloatField(default=0.0)
-    teacher_id = models.CharField(max_length=20)   # Check if this matches form
+    course_code = models.CharField(max_length=20)
+    academic_year = models.CharField(max_length=20, default='2025/2026')  # Add this field
+    ca_total = models.FloatField()
+    mid_term = models.FloatField(default=0.0)
+    final_exam = models.FloatField(default=0.0)
+    attendance_rate = models.FloatField(null=True, blank=True)
+    teacher_id = models.CharField(max_length=20)
     is_finalized = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.student.student_id} - {self.course_code}"
     
+     
 class Course(models.Model):
-    name = models.CharField(max_length=200)
-    code = models.CharField(max_length=20, unique=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+   code = models.CharField(max_length=10, unique=True)
+   name = models.CharField(max_length=100)
+   department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='courses')
+   credits = models.IntegerField(default=3)
 
-    def __str__(self):
-        return self.name
+
+   def __str__(self):
+    return self.name
