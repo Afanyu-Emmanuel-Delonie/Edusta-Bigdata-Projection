@@ -16,3 +16,11 @@ media/
 
 # VS Code
 .vscode/
+# Create or update .gitignore
+echo "*.pyc" >> .gitignore
+echo "__pycache__/" >> .gitignore
+echo "*.py[cod]" >> .gitignore
+echo "db.sqlite3" >> .gitignore
+echo "*.sqlite3" >> .gitignore
+echo "venv/" >> .gitignore
+echo ".env" >> .gitignore
