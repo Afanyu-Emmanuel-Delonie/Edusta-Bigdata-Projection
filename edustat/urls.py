@@ -7,24 +7,20 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 urlpatterns = [
     # Admin panel - accessible at /admin/
     path('admin/', admin.site.urls),
     
-    # Homepage app - handles the landing page
-    path('', include('home.urls')),
-    
     # Accounts app - handles login, logout, registration
     path('accounts/', include('accounts.urls')),
     
-    # Dashboard app - protected area for logged-in users
-    path('dashboard/', include('dashboard.urls')),
+    # Redirect root to performance dashboard
+    path('', RedirectView.as_view(url='/performance/', permanent=False)),
     
     # Performance app - handles performance metrics and reports
-    path('performance/', include('performance.urls')),
-    
-    path('about-project/', include('about.urls')),
+    path('performance/', include('performance.urls', namespace='performance')),
 ]
 
 # Serve media files in development
