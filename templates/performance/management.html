@@ -1,122 +1,179 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-fluid p-0">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
         <div>
-            <h4 class="fw-bold" style="color: var(--auca-blue);">Page 5: AI Diagnostics & Data Management</h4>
-            <p class="text-muted small">Manage semester datasets and monitor Machine Learning model health.</p>
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 7H7v6h6V7z"/>
+                        <path fill-rule="evenodd" d="M7 2a1 1 0 012 0v1h2V2a1 1 0 112 0v1h2a2 2 0 012 2v2h1a1 1 0 110 2h-1v2h1a1 1 0 110 2h-1v2a2 2 0 01-2 2h-2v1a1 1 0 11-2 0v-1H9v1a1 1 0 11-2 0v-1H5a2 2 0 01-2-2v-2H2a1 1 0 110-2h1V9H2a1 1 0 010-2h1V5a2 2 0 012-2h2V2zM5 5h10v10H5V5z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900">AI Diagnostics & Data Management</h1>
+            </div>
+            <p class="text-sm text-gray-500 ml-13">Manage semester datasets and monitor Machine Learning model health</p>
         </div>
     </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
-                <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h6 class="fw-bold mb-0" style="color: var(--auca-blue);">AI Model Diagnostics</h6>
-                        <span class="badge bg-success">Model: Gradient Boosting</span>
-                    </div>
-                    
-                    <div class="row text-center mb-4">
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded-3">
-                                <small class="text-muted d-block">Test Accuracy</small>
-                                <h3 class="fw-bold mb-0">41.3%</h3>
-                            </div>
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- AI Model Diagnostics Card -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-gray-900">AI Model Diagnostics</h3>
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800">
+                    Model: Gradient Boosting
+                </span>
+            </div>
+            
+            <!-- Metrics Grid -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-gray-50 rounded-xl p-4 text-center">
+                    <p class="text-sm text-gray-500 mb-1">Test Accuracy</p>
+                    <p class="text-3xl font-bold text-gray-900">41.3%</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl p-4 text-center">
+                    <p class="text-sm text-gray-500 mb-1">Data Samples</p>
+                    <p class="text-3xl font-bold text-gray-900">300+</p>
+                </div>
+            </div>
+
+            <!-- Feature Importance -->
+            <div>
+                <h4 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">Feature Importance (Impact on Prediction)</h4>
+                
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-700">CA Score (Weighted)</span>
+                            <span class="text-sm font-bold text-gray-900">66%</span>
                         </div>
-                        <div class="col-6">
-                            <div class="p-3 bg-light rounded-3">
-                                <small class="text-muted d-block">Data Samples</small>
-                                <h3 class="fw-bold mb-0">300+</h3>
-                            </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-auca-blue h-2 rounded-full transition-all duration-300" style="width: 66%"></div>
                         </div>
                     </div>
 
-                    <h6 class="small fw-bold text-muted mb-3">Feature Importance (Impact on Prediction)</h6>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1 small">
-                            <span>CA Score (Weighted)</span>
-                            <span class="fw-bold">66%</span>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm text-gray-700">Attendance Rate</span>
+                            <span class="text-sm font-bold text-gray-900">21%</span>
                         </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar" style="width: 66%; background: var(--auca-blue);"></div>
-                        </div>
-                    </div>
-                    <div class="mb-0">
-                        <div class="d-flex justify-content-between mb-1 small">
-                            <span>Attendance Rate</span>
-                            <span class="fw-bold">21%</span>
-                        </div>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar" style="width: 21%; background: var(--auca-yellow);"></div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-yellow-400 h-2 rounded-full transition-all duration-300" style="width: 21%"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-6">
-            <div class="card border-0 shadow-sm h-100" style="border-radius: 20px;">
-                <div class="card-body p-4 d-flex flex-column justify-content-center text-center">
-                    <div class="mb-3">
-                        <i class="fa-solid fa-file-excel fa-3x" style="color: #1d6f42;"></i>
+        <!-- Bulk Upload Card -->
+        <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div class="flex flex-col items-center justify-center h-full text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Bulk Semester Upload</h3>
+                <p class="text-sm text-gray-500 mb-6">Upload CSV or Excel files to process an entire cohort</p>
+                
+                <form action="{% url 'bulk_upload' %}" method="post" enctype="multipart/form-data" class="w-full max-w-md">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <input type="file" 
+                               name="file" 
+                               id="fileInput" 
+                               accept=".csv, .xlsx"
+                               class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-auca-blue hover:file:bg-blue-100 cursor-pointer border border-gray-200 rounded-lg">
                     </div>
-                    <h6 class="fw-bold" style="color: var(--auca-blue);">Bulk Semester Upload</h6>
-                    <p class="text-muted small">Upload CSV or Excel files to process an entire cohort.</p>
                     
-                    <form action="{% url 'bulk_upload' %}" method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                        <input type="file" name="file" id="fileInput" class="form-control mb-3" accept=".csv, .xlsx">
-                        <button type="submit" class="btn w-100 text-white fw-bold" style="background: var(--auca-blue);">
-                            <i class="fa fa-upload me-2"></i> PROCESS DATASET
-                        </button>
-                    </form>
-                    <div class="mt-3">
-                        <a href="#" class="small text-decoration-none text-muted">Download Excel Template</a>
-                    </div>
+                    <button type="submit" 
+                            class="w-full inline-flex items-center justify-center px-6 py-3 bg-auca-blue text-white rounded-lg hover:bg-auca-light-blue transition-colors text-sm font-bold shadow-sm">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                        </svg>
+                        PROCESS DATASET
+                    </button>
+                </form>
+                
+                <div class="mt-4">
+                    <a href="#" class="text-sm text-gray-500 hover:text-auca-blue transition-colors">
+                        Download Excel Template
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm" style="border-radius: 20px;">
-        <div class="card-header bg-white border-0 pt-4 ps-4">
-            <h6 class="fw-bold" style="color: var(--auca-blue);">Add / Edit Individual Student Record</h6>
+    <!-- Individual Student Record Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100">
+            <h3 class="text-lg font-bold text-gray-900">Add / Edit Individual Student Record</h3>
         </div>
-        <div class="card-body p-4">
-            <form action="{% url 'submit_record' %}" method="post" class="row g-3">
+        <div class="p-6">
+            <form action="{% url 'submit_record' %}" method="post" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {% csrf_token %}
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold">Student ID</label>
-                    <input type="text" class="form-control bg-light border-0" placeholder="e.g. 2024001">
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Student ID</label>
+                    <input type="text" 
+                           name="student_id"
+                           class="w-full px-4 py-2 bg-gray-50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-auca-blue text-sm" 
+                           placeholder="e.g. 2024001">
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold">Full Name</label>
-                    <input type="text" class="form-control bg-light border-0" placeholder="First & Last Name">
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Full Name</label>
+                    <input type="text" 
+                           name="full_name"
+                           class="w-full px-4 py-2 bg-gray-50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-auca-blue text-sm" 
+                           placeholder="First & Last Name">
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label small fw-bold">Course Code</label>
-                    <select class="form-select bg-light border-0">
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Course Code</label>
+                    <select name="course_code" 
+                            class="w-full px-4 py-2 bg-gray-50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-auca-blue text-sm">
                         <option>CS101</option>
                         <option>DS201</option>
                         <option>MAT102</option>
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold">CA Score (0-40)</label>
-                    <input type="number" class="form-control bg-light border-0" max="40">
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">CA Score (0-40)</label>
+                    <input type="number" 
+                           name="ca_score"
+                           max="40"
+                           class="w-full px-4 py-2 bg-gray-50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-auca-blue text-sm">
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold">Attendance (0.0 - 1.0)</label>
-                    <input type="number" step="0.01" class="form-control bg-light border-0">
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Attendance (0.0 - 1.0)</label>
+                    <input type="number" 
+                           name="attendance"
+                           step="0.01"
+                           min="0"
+                           max="1"
+                           class="w-full px-4 py-2 bg-gray-50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-auca-blue text-sm">
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold">Final Score (Optional)</label>
-                    <input type="number" class="form-control bg-light border-0" placeholder="Leave blank for Situation A">
+                
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Final Score (Optional)</label>
+                    <input type="number" 
+                           name="final_score"
+                           class="w-full px-4 py-2 bg-gray-50 border-0 rounded-lg focus:outline-none focus:ring-2 focus:ring-auca-blue text-sm" 
+                           placeholder="Leave blank for Situation A">
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn w-100 fw-bold" style="background: var(--auca-yellow); color: var(--auca-blue);">
+                
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-2 opacity-0">Submit</label>
+                    <button type="submit" 
+                            class="w-full px-6 py-2 bg-yellow-400 text-auca-blue rounded-lg hover:bg-yellow-500 transition-colors text-sm font-bold shadow-sm">
                         SAVE RECORD
                     </button>
                 </div>
@@ -124,7 +181,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block sidebar %}
 {% endblock %}
