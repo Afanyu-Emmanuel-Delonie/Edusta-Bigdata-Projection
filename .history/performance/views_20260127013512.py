@@ -393,3 +393,53 @@ class RecordCreateView(CreateView):
     success_url = '/performance/'
 
 
+@login_required
+def ml_analytics_api(request):
+    """
+    JSON API endpoint for ML analytics data
+    For charts and visualizations
+    """
+    semester_id = request.GET.get('semester')
+    
+    qs = Performance.objects.all()
+    if semester_id:
+        qs = qs.filter(semester_id=semester_id)
+    
+    # Risk level distribution
+    risk_data = {
+        'labels': ['Critical', 'High', 'Medium', 'Low', 'None'],
+        'values': [
+            qs.filter(risk_level='CRITICAL').count(),
+            qs.filter(risk_level='HIGH').count(),
+            qs.filter(risk_level='MEDIUM').count(),
+            qs.filter(risk_level='LOW').count(),
+            qs.filter(risk_level='NONE').count(),
+        ]
+    }
+    
+    # Prediction confidence distribution
+    confidence_data = {
+        'labels': ['High (80-100%)', 'Medium (60-79%)', 'Low (0-59%)'],
+        'values': [
+            qs.filter(ml_confidence__gte=80).count(),
+            qs.filter(ml_confidence__gte=60, ml_confidence__lt=80).count(),
+            qs.filter(ml_confidence__lt=60).count(),
+        ]
+    }
+    
+    # Score vs ML Prediction scatter
+    scatter_data = []
+    for perf in qs.filter(ml_predicted_pass__isnull=False)[:100]:  # Limit for performance
+        scatter_data.append({
+            'score': float(perf.score or 0),
+            'confidence': float(perf.ml_confidence or 0),
+            'predicted_pass': perf.ml_predicted_pass,
+            'student_id': perf.student.student_id,
+        })
+    
+    return JsonResponse({
+        'risk_distribution': risk_data,
+        'confidence_distribution': confidence_data,
+        'scatter_data': scatter_data,
+    })
+

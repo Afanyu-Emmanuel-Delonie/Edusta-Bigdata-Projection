@@ -393,3 +393,110 @@ class RecordCreateView(CreateView):
     success_url = '/performance/'
 
 
+@login_required
+def ml_analytics_api(request):
+    """
+    JSON API endpoint for ML analytics data
+    For charts and visualizations
+    """
+    semester_id = request.GET.get('semester')
+    
+    qs = Performance.objects.all()
+    if semester_id:
+        qs = qs.filter(semester_id=semester_id)
+    
+    # Risk level distribution
+    risk_data = {
+        'labels': ['Critical', 'High', 'Medium', 'Low', 'None'],
+        'values': [
+            qs.filter(risk_level='CRITICAL').count(),
+            qs.filter(risk_level='HIGH').count(),
+            qs.filter(risk_level='MEDIUM').count(),
+            qs.filter(risk_level='LOW').count(),
+            qs.filter(risk_level='NONE').count(),
+        ]
+    }
+    
+    # Prediction confidence distribution
+    confidence_data = {
+        'labels': ['High (80-100%)', 'Medium (60-79%)', 'Low (0-59%)'],
+        'values': [
+            qs.filter(ml_confidence__gte=80).count(),
+            qs.filter(ml_confidence__gte=60, ml_confidence__lt=80).count(),
+            qs.filter(ml_confidence__lt=60).count(),
+        ]
+    }
+    
+    # Score vs ML Prediction scatter
+    scatter_data = []
+    for perf in qs.filter(ml_predicted_pass__isnull=False)[:100]:  # Limit for performance
+        scatter_data.append({
+            'score': float(perf.score or 0),
+            'confidence': float(perf.ml_confidence or 0),
+            'predicted_pass': perf.ml_predicted_pass,
+            'student_id': perf.student.student_id,
+        })
+    
+    return JsonResponse({
+        'risk_distribution': risk_data,
+        'confidence_distribution': confidence_data,
+        'scatter_data': scatter_data,
+    })
+
+
+@login_required
+def export_ml_report(request):
+    """
+    Export comprehensive ML report as CSV
+    """
+    import csv
+    from django.utils import timezone
+    
+    semester_id = request.GET.get('semester')
+    
+    qs = Performance.objects.all().select_related('student', 'course', 'semester')
+    if semester_id:
+        qs = qs.filter(semester_id=semester_id)
+    
+    # Create CSV response
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = f'attachment; filename="ml_report_{timezone.now().strftime("%Y%m%d_%H%M%S")}.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow([
+        'Student ID', 'Student Name', 'Department', 'Course', 'Semester',
+        'Score', 'Grade', 'Status',
+        'ML Prediction', 'ML Confidence (%)', 'Prob Pass (%)', 'Prob Fail (%)',
+        'Risk Level', 'Risk Score', 'Needs Intervention', 'Priority',
+        'Performance Trend', 'Predicted Final Score',
+        'Attendance', 'Mid-Semester', 'Final Exam'
+    ])
+    
+    for perf in qs:
+        writer.writerow([
+            perf.student.student_id,
+            perf.student.get_full_name(),
+            perf.student.department,
+            perf.course.code,
+            perf.semester.name,
+            float(perf.score or 0),
+            perf.grade,
+            perf.status,
+            perf.ml_prediction_label or 'N/A',
+            float(perf.ml_confidence or 0),
+            float(perf.prob_pass or 0),
+            float(perf.prob_fail or 0),
+            perf.risk_level,
+            float(perf.risk_score or 0),
+            'Yes' if perf.needs_intervention else 'No',
+            perf.intervention_priority or 'N/A',
+            perf.performance_trend,
+            float(perf.predicted_final_score or 0) if perf.predicted_final_score else 'N/A',
+            float(perf.attendance or 0),
+            float(perf.mid_semester or 0),
+            float(perf.final_exam or 0),
+        ])
+    
+    return response
+
+
